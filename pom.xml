@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2015 Maven Source Dependencies
+    Plugin contributors as indicated by the @author tags.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.l2x6.maven.srcdeps</groupId>
+    <artifactId>maven-srcdeps-plugin-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Maven Source Dependencies Plugin Parent</name>
+    <url>https://github.com/ppalaga/maven-srcdeps-plugin</url>
+
+    <inceptionYear>2015</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>ppalaga</id>
+            <name>Peter Palaga</name>
+            <timezone>Europe/Prague</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:ppalaga/maven-srcdeps-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:ppalaga/maven-srcdeps-plugin.git</developerConnection>
+        <url>https://github.com/ppalaga/maven-srcdeps-plugin</url>
+        <tag>head</tag>
+    </scm>
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/editorconfig/editorconfig-core-java/issues</url>
+    </issueManagement>
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
+
+    <modules>
+        <module>maven-srcdeps-plugin</module>
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- maven-compiler-plugin -->
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
+
+        <!-- Checkstyle and maven-checkstyle-plugin -->
+        <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>
+        <version.com.puppycrawl.tools.checkstyle>6.8</version.com.puppycrawl.tools.checkstyle>
+        <!-- checkstyle.xml location in the source tree -->
+        <checkstyle.configLocation>checkstyle.xml</checkstyle.configLocation>
+        <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
+        <checkstyle.failOnError>true</checkstyle.failOnError>
+
+        <!-- license-maven-plugin -->
+        <version.com.mycila.license-maven-plugin>2.11</version.com.mycila.license-maven-plugin>
+        <license.failIfMissing>true</license.failIfMissing>
+        <license.failIfUnknown>true</license.failIfUnknown>
+
+    </properties>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${version.com.mycila.license-maven-plugin}</version>
+                <configuration>
+                    <header>license-header-template.txt</header>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>**/README.*</exclude>
+                        <exclude>**/license-header-template.txt</exclude>
+                        <exclude>**/*.html</exclude>
+                        <exclude>**/*.htm</exclude>
+                    </excludes>
+                    <mapping>
+                        <yaml>SCRIPT_STYLE</yaml>
+                        <yml>SCRIPT_STYLE</yml>
+                    </mapping>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <version>${version.com.mycila.license-maven-plugin}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${version.maven-checkstyle-plugin}</version>
+                <configuration>
+                    <configLocation>${checkstyle.configLocation}</configLocation>
+                    <consoleOutput>${checkstyle.consoleOutput}</consoleOutput>
+                    <failsOnError>${checkstyle.failOnError}</failsOnError>
+                    <useFile />
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${version.com.puppycrawl.tools.checkstyle}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>check-style</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

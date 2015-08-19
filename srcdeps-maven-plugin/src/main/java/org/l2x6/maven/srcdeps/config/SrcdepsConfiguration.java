@@ -22,8 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
@@ -46,10 +47,11 @@ public class SrcdepsConfiguration {
 
         private final PluginParameterExpressionEvaluator evaluator;
 
-        public Builder(Xpp3Dom dom, MavenSession session) {
+        public Builder(Plugin plugin, Xpp3Dom dom, MavenSession session) {
             super();
             this.dom = dom;
-            this.evaluator = new PluginParameterExpressionEvaluator(session);
+            MojoExecution mojoExecution = new MojoExecution(plugin, "install", "whatever");
+            this.evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
         }
 
         public SrcdepsConfiguration build() {
@@ -80,7 +82,8 @@ public class SrcdepsConfiguration {
                     sourcesDirectory = new File(srcDir);
                 } else {
                     sourcesDirectory = new File(
-                            (String) eval("${srcdeps.sourcesDirectory}", "${settings.localRepository}/sources"));
+                            (String) eval("${srcdeps.sourcesDirectory}",
+                                    "${settings.localRepository}/../dependency-sources"));
                 }
 
                 File javaHome = null;
@@ -102,7 +105,7 @@ public class SrcdepsConfiguration {
                 }
 
                 String scmPluginVersion = (String) evaluator.evaluate("${srcdeps.scmPluginVersion}");
-                if (scmPluginVersion != null) {
+                if (scmPluginVersion == null) {
                     scmPluginVersion = "1.9.4";
                 }
 
@@ -134,13 +137,11 @@ public class SrcdepsConfiguration {
     }
 
     private final boolean failOnMissingRepository;
-    @Parameter(property = "srcdeps.javaHome", defaultValue = "${java.home}", required = true)
     private final File javaHome;
-    @Parameter(property = "srcdeps.mavenHome", defaultValue = "${maven.home}", required = true)
     private final File mavenHome;
     private final List<Repository> repositories;
-    @Parameter(property = "srcdeps.scmPluginVersion", defaultValue = "1.9.4", required = true)
     private final String scmPluginVersion;
+
     private final File sourcesDirectory;
 
     private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
@@ -176,5 +177,12 @@ public class SrcdepsConfiguration {
 
     public boolean isFailOnMissingRepository() {
         return failOnMissingRepository;
+    }
+
+    @Override
+    public String toString() {
+        return "SrcdepsConfiguration [failOnMissingRepository=" + failOnMissingRepository + ", javaHome=" + javaHome
+                + ", mavenHome=" + mavenHome + ", repositories=" + repositories + ", scmPluginVersion="
+                + scmPluginVersion + ", sourcesDirectory=" + sourcesDirectory + "]";
     }
 }

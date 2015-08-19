@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-File touchFile = new File( basedir, "target/touch.txt" );
+File alertsPom = new File( basedir, "../../../target/dependency-sources/org.hawkular.alerts/pom.xml" );
+assert alertsPom.isFile()
 
-assert touchFile.isFile()
+File alertsRestWar = new File( basedir, "../../../target/local-repo/org/hawkular/alerts/hawkular-alerts-rest/0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0/hawkular-alerts-rest-0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0.war" );
+assert alertsRestWar.isFile()

@@ -24,13 +24,17 @@
   <groupId>org.l2x6.maven.it</groupId>
   <artifactId>simple-it</artifactId>
   <version>1.0-SNAPSHOT</version>
-
+  <packaging>pom</packaging>
   <description>A simple IT verifying the basic use case.</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.org.hawkular.alerts>0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0</version.org.hawkular.alerts>
   </properties>
+
+  <modules>
+      <module>mod-1</module>
+  </modules>
 
   <dependencyManagement>
     <dependencies>
@@ -50,20 +54,6 @@
     </dependencies>
   </dependencyManagement>
 
-  <dependencies>
-      <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-actions-email</artifactId>
-        <type>war</type>
-      </dependency>
-
-      <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-rest</artifactId>
-        <type>war</type>
-      </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -82,16 +72,8 @@
             </repository>
           </repositories>
         </configuration>
-        <executions>
-          <execution>
-            <id>install</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>install</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
+
 </project>

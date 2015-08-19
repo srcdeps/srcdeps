@@ -18,13 +18,15 @@ package org.l2x6.maven.srcdeps;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.execution.ProjectDependencyGraph;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
@@ -34,48 +36,65 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "srcdeps")
 public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipant {
+
+    @SuppressWarnings("unchecked")
+    private static Set<String> TRIGGER_PHASES = Collections.unmodifiableSet(new HashSet<String>(
+            Arrays.asList(new String[] { "validate", "initialize", "generate-sources", "process-sources",
+                    "generate-resources", "process-resources", "compile", "process-classes", "generate-test-sources",
+                    "process-test-sources", "generate-test-resources", "process-test-resources", "test-compile",
+                    "process-test-classes", "test", "prepare-package", "package", "pre-integration-test",
+                    "integration-test", "post-integration-test", "verify", "install", "deploy" })));
+
+    @Requirement
+    private ArtifactHandlerManager artifactHandlerManager;
+
     @Requirement
     private Logger logger;
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        ProjectDependencyGraph graph = session.getProjectDependencyGraph();
-        logger.info("ProjectDependencyGraph = " + (graph != null ? graph.toString() : "null"));
+        logger.info("SrcdepsLifecycleParticipant");
 
-        MavenProject project = session.getCurrentProject();
-        @SuppressWarnings("unchecked")
-        List<Dependency> deps = project.getDependencies();
+        List<String> goals = session.getGoals();
 
-        @SuppressWarnings("unchecked")
-        List<Plugin> plugins = project.getBuildPlugins();
-        if (plugins != null && deps != null) {
-            for (Plugin plugin : plugins) {
+        logger.info("goals = " + goals);
+        if (goals != null && shouldTriggerSrcdepsBuild(goals)) {
+            List<MavenProject> projects = session.getProjects();
+            logger.info("SrcdepsLifecycleParticipant projects = "+ projects);
 
-                if (SrcdepsConstants.ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID.equals(plugin.getGroupId())
-                        && SrcdepsConstants.SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID.equals(plugin.getArtifactId())) {
+            for (MavenProject project : projects) {
+                logger.info("srcdeps for project "+ project.getGroupId() +":"+ project.getArtifactId());
+                @SuppressWarnings("unchecked")
+                List<Dependency> deps = project.getDependencies();
 
-                    Object conf = plugin.getConfiguration();
-                    if (conf instanceof Xpp3Dom) {
-                        SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder((Xpp3Dom) conf,
-                                session).build();
-                        Map<Dependency, String> revisions = filterSrcdeps(deps);
-                        new SrcdepsInstaller(session, srcdepsConfiguration, revisions).install();
+                @SuppressWarnings("unchecked")
+                List<Plugin> plugins = project.getBuildPlugins();
+                if (plugins != null && deps != null) {
+                    for (Plugin plugin : plugins) {
+
+                        if (SrcdepsConstants.ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID.equals(plugin.getGroupId())
+                                && SrcdepsConstants.SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID.equals(plugin.getArtifactId())) {
+
+                            Object conf = plugin.getConfiguration();
+                            if (conf instanceof Xpp3Dom) {
+                                SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
+                                        (Xpp3Dom) conf, session).build();
+                                Map<Dependency, String> revisions = filterSrcdeps(deps);
+                                new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
+                                        revisions).install();
+                            }
+                        }
+
                     }
                 }
-
             }
         }
-
     }
 
-    @Override
-    public void afterSessionStart(MavenSession session) throws MavenExecutionException {
-
-    }
-
-    @SuppressWarnings("unchecked")
     private Map<Dependency, String> filterSrcdeps(List<Dependency> deps) {
         Map<Dependency, String> revisions = new HashMap<Dependency, String>();
         logger.info("About to check " + deps.size() + " compile dependencies");
@@ -88,6 +107,16 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
         }
         revisions = Collections.unmodifiableMap(revisions);
         return revisions;
+    }
+
+    private boolean shouldTriggerSrcdepsBuild(List<String> goals) {
+        logger.info("checking if any of " + goals + " is in " + TRIGGER_PHASES);
+        for (String goal : goals) {
+            if (TRIGGER_PHASES.contains(goal)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

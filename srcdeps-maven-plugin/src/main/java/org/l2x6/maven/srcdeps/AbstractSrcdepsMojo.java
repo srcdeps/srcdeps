@@ -17,8 +17,9 @@
 package org.l2x6.maven.srcdeps;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.List;
+
+import org.apache.maven.execution.MavenSession;
 
 /*
  * Copyright 2001-2005 The Apache Software Foundation.
@@ -37,47 +38,47 @@ import java.io.IOException;
  */
 
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugin.BuildPluginManager;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.l2x6.maven.srcdeps.config.Repository;
 
 /**
  * Goal which touches a timestamp file.
  *
  */
-@Mojo(name = "touch", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
-public class InstallMojo extends AbstractMojo {
+public abstract class AbstractSrcdepsMojo extends AbstractMojo {
+
+    private static final Object modelLock = new Object();
+
+    private static final String REVISIONS_MAP_KEY = "srcdeps.revisions";
+
+    @Parameter(property = "srcdeps.failOnMissingRepository", defaultValue = "true", required = true)
+    protected boolean failOnMissingRepository;
+
+    @Parameter(property = "srcdeps.javaHome", defaultValue = "${java.home}", required = true)
+    protected File javaHome;
+
+    @Parameter(property = "srcdeps.mavenHome", defaultValue = "${maven.home}", required = true)
+    protected File mavenHome;
+
+    @Component
+    protected BuildPluginManager pluginManager;
+
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
+
+    @Parameter(required = true)
+    protected List<Repository> repositories;
+
+    @Parameter(property = "srcdeps.scmPluginVersion", defaultValue = "1.9.4", required = true)
+    protected String scmPluginVersion;
+
     /**
-     * Location of the file.
+     * The session
      */
-    @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)
-    private File outputDirectory;
+    @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    protected MavenSession session;
 
-    public void execute() throws MojoExecutionException {
-        File f = outputDirectory;
-
-        if (!f.exists()) {
-            f.mkdirs();
-        }
-
-        File touch = new File(f, "touch.txt");
-
-        FileWriter w = null;
-        try {
-            w = new FileWriter(touch);
-
-            w.write("touch.txt");
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error creating file " + touch, e);
-        } finally {
-            if (w != null) {
-                try {
-                    w.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
-    }
 }

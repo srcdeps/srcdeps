@@ -29,7 +29,40 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.org.hawkular.alerts>0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0</version.org.hawkular.alerts>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.hawkular.alerts</groupId>
+        <artifactId>hawkular-alerts-actions-email</artifactId>
+        <version>${version.org.hawkular.alerts}</version>
+        <type>war</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hawkular.alerts</groupId>
+        <artifactId>hawkular-alerts-rest</artifactId>
+        <version>${version.org.hawkular.alerts}</version>
+        <type>war</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+      <dependency>
+        <groupId>org.hawkular.alerts</groupId>
+        <artifactId>hawkular-alerts-actions-email</artifactId>
+        <type>war</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hawkular.alerts</groupId>
+        <artifactId>hawkular-alerts-rest</artifactId>
+        <type>war</type>
+      </dependency>
+  </dependencies>
 
   <build>
     <plugins>
@@ -37,12 +70,24 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
+        <extensions>true</extensions>
+        <configuration>
+          <repositories>
+            <repository>
+              <id>org.hawkular.alerts</id>
+              <selectors>
+                <selector>org.hawkular.alerts</selector>
+              </selectors>
+              <url>scm:git:git@github.com:hawkular/hawkular-alerts.git</url>
+            </repository>
+          </repositories>
+        </configuration>
         <executions>
           <execution>
-            <id>touch</id>
+            <id>install</id>
             <phase>validate</phase>
             <goals>
-              <goal>touch</goal>
+              <goal>install</goal>
             </goals>
           </execution>
         </executions>

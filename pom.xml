@@ -22,12 +22,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.l2x6.maven.srcdeps</groupId>
-    <artifactId>maven-srcdeps-plugin-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <artifactId>srcdeps-maven-plugin-parent</artifactId>
+    <version>0.0.1</version>
     <packaging>pom</packaging>
 
     <name>Maven Source Dependencies Plugin Parent</name>
-    <url>https://github.com/ppalaga/maven-srcdeps-plugin</url>
+    <url>https://github.com/ppalaga/srcdeps-maven-plugin</url>
 
     <inceptionYear>2015</inceptionYear>
 
@@ -48,9 +48,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:ppalaga/maven-srcdeps-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:ppalaga/maven-srcdeps-plugin.git</developerConnection>
-        <url>https://github.com/ppalaga/maven-srcdeps-plugin</url>
+        <connection>scm:git:git@github.com:ppalaga/srcdeps-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:ppalaga/srcdeps-maven-plugin.git</developerConnection>
+        <url>https://github.com/ppalaga/srcdeps-maven-plugin</url>
         <tag>head</tag>
     </scm>
     <issueManagement>
@@ -69,7 +69,7 @@
     </distributionManagement>
 
     <modules>
-        <module>maven-srcdeps-plugin</module>
+        <module>srcdeps-maven-plugin</module>
     </modules>
 
     <properties>
@@ -160,7 +160,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!-- http://maven.apache.org/maven-jsr330.html -->
         </plugins>
     </build>
 

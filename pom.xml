@@ -48,14 +48,14 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:ppalaga/srcdeps-maven-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:ppalaga/srcdeps-maven-plugin.git</developerConnection>
-        <url>https://github.com/ppalaga/srcdeps-maven-plugin</url>
+        <connection>scm:git:git@github.com:l2x6/srcdeps-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:l2x6/srcdeps-maven-plugin.git</developerConnection>
+        <url>https://github.com/l2x6/srcdeps-maven-plugin</url>
         <tag>head</tag>
     </scm>
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/editorconfig/editorconfig-core-java/issues</url>
+        <url>https://github.com/l2x6/srcdeps-maven-plugin/issues</url>
     </issueManagement>
     <distributionManagement>
       <snapshotRepository>

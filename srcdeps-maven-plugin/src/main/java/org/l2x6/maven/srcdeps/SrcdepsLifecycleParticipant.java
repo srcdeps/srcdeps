@@ -68,27 +68,16 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
 
             for (MavenProject project : projects) {
                 logger.info("srcdeps for project "+ project.getGroupId() +":"+ project.getArtifactId());
-                @SuppressWarnings("unchecked")
-                List<Dependency> deps = project.getDependencies();
-
-                @SuppressWarnings("unchecked")
-                List<Plugin> plugins = project.getBuildPlugins();
-                if (plugins != null && deps != null) {
-                    for (Plugin plugin : plugins) {
-
-                        if (SrcdepsConstants.ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID.equals(plugin.getGroupId())
-                                && SrcdepsConstants.SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID.equals(plugin.getArtifactId())) {
-
-                            Object conf = plugin.getConfiguration();
-                            if (conf instanceof Xpp3Dom) {
-                                SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
-                                        (Xpp3Dom) conf, session).build();
-                                Map<Dependency, String> revisions = filterSrcdeps(deps);
-                                new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
-                                        revisions).install();
-                            }
-                        }
-
+                Plugin plugin = findSrcdepsPlugin(project);
+                if (plugin != null) {
+                    Object conf = plugin.getConfiguration();
+                    if (conf instanceof Xpp3Dom) {
+                        SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
+                                (Xpp3Dom) conf, session).build();
+                        @SuppressWarnings("unchecked")
+                        Map<Dependency, String> revisions = filterSrcdeps(project.getDependencies());
+                        new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
+                                revisions).install();
                     }
                 }
             }
@@ -107,6 +96,23 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
         }
         revisions = Collections.unmodifiableMap(revisions);
         return revisions;
+    }
+
+    private Plugin findSrcdepsPlugin(MavenProject project) {
+        @SuppressWarnings("unchecked")
+        List<Dependency> deps = project.getDependencies();
+        @SuppressWarnings("unchecked")
+        List<Plugin> plugins = project.getBuildPlugins();
+        if (plugins != null && deps != null) {
+            for (Plugin plugin : plugins) {
+
+                if (SrcdepsConstants.ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID.equals(plugin.getGroupId())
+                        && SrcdepsConstants.SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID.equals(plugin.getArtifactId())) {
+                    return plugin;
+                }
+            }
+        }
+        return null;
     }
 
     private boolean shouldTriggerSrcdepsBuild(List<String> goals) {

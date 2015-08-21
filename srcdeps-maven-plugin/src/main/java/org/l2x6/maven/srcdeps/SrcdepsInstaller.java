@@ -55,11 +55,6 @@ public class SrcdepsInstaller {
         this.artifactHandlerManager = artifactHandlerManager;
         this.configuration = configuration;
         this.revisions = revisions;
-//        ForkedMavenExecutor exec = new ForkedMavenExecutor();
-//        exec.setCommandLineFactory(new DefaultCommandLineFactory());
-//        exec.enableLogging(logger);
-//        InvokerMavenExecutor exec = new InvokerMavenExecutor();
-//        exec.enableLogging(logger);
         try {
             this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
             logger.info("mavenExecutor = "+ mavenExecutor);
@@ -151,7 +146,6 @@ public class SrcdepsInstaller {
                     }
                 }
             }
-
 
         }
 

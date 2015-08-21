@@ -1,0 +1,11 @@
+language: java
+# Enable container-based infrastructure
+# see http://docs.travis-ci.com/user/workers/container-based-infrastructure/
+sudo: false
+jdk:
+- oraclejdk8
+cache:
+  directories:
+  - $HOME/.m2/repository
+script:
+- mvn -Prun-its clean install || { tail -n 100 srcdeps-maven-plugin/target/it/simple-it/build.log && exit 1; }

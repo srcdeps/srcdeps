@@ -68,7 +68,7 @@
               <selectors>
                 <selector>org.hawkular.alerts</selector>
               </selectors>
-              <url>scm:git:git@github.com:hawkular/hawkular-alerts.git</url>
+              <url>scm:git:https://github.com/hawkular/hawkular-alerts.git</url>
             </repository>
           </repositories>
         </configuration>

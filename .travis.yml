@@ -8,4 +8,4 @@ cache:
   directories:
   - $HOME/.m2/repository
 script:
-- mvn -Prun-its clean install || tail -n 100 srcdeps-maven-plugin/target/it/simple-it/build.log && exit 1
+- mvn -Prun-its clean install || { tail -n 100 srcdeps-maven-plugin/target/it/simple-it/build.log && exit 1; }

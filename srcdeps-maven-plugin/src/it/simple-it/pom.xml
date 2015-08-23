@@ -29,7 +29,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.org.hawkular.alerts>0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0</version.org.hawkular.alerts>
+    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version.org.l2x6.maven.srcdeps.itest>
   </properties>
 
   <modules>
@@ -39,17 +39,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-actions-email</artifactId>
-        <version>${version.org.hawkular.alerts}</version>
-        <type>war</type>
-      </dependency>
-
-      <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-rest</artifactId>
-        <version>${version.org.hawkular.alerts}</version>
-        <type>war</type>
+        <groupId>org.l2x6.maven.srcdeps.itest</groupId>
+        <artifactId>srcdeps-test-artifact</artifactId>
+        <version>${version.org.l2x6.maven.srcdeps.itest}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -64,11 +56,11 @@
         <configuration>
           <repositories>
             <repository>
-              <id>org.hawkular.alerts</id>
+              <id>org.l2x6.maven.srcdeps.itest</id>
               <selectors>
-                <selector>org.hawkular.alerts</selector>
+                <selector>org.l2x6.maven.srcdeps.itest</selector>
               </selectors>
-              <url>scm:git:https://github.com/hawkular/hawkular-alerts.git</url>
+              <url>scm:git:https://github.com/l2x6/srcdeps-test-artifact.git</url>
             </repository>
           </repositories>
         </configuration>

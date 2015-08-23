@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-File alertsPom = new File( basedir, "../../../target/dependency-sources/org.hawkular.alerts/pom.xml" );
-assert alertsPom.isFile()
+File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+assert testPom.isFile()
 
-File alertsRestWar = new File( basedir, "../../../target/local-repo/org/hawkular/alerts/hawkular-alerts-rest/0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0/hawkular-alerts-rest-0.4.0-SRC-2a4ab9789d5c0b24e1c9e495d957f04e1c7130d0.war" );
-assert alertsRestWar.isFile()
+File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact/0.0.1-SRC-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b/srcdeps-test-artifact-0.0.1-SRC-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b.jar")
+assert testJar.isFile()

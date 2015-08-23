@@ -28,15 +28,8 @@
 
   <dependencies>
       <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-actions-email</artifactId>
-        <type>war</type>
-      </dependency>
-
-      <dependency>
-        <groupId>org.hawkular.alerts</groupId>
-        <artifactId>hawkular-alerts-rest</artifactId>
-        <type>war</type>
+        <groupId>org.l2x6.maven.srcdeps.itest</groupId>
+        <artifactId>srcdeps-test-artifact</artifactId>
       </dependency>
   </dependencies>
 

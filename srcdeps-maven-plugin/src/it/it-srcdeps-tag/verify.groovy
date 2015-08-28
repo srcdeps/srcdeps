@@ -14,11 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.maven.srcdeps;
+File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+assert testPom.isFile()
 
-public class SrcdepsConstants {
-    public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
-    public static final String SRC_VERSION_INFIX = "-SRC-";
-    public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
-    public static final char SRC_VERSION_DELIMITER = '-';
-}
+File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact/0.0.1-SRC-tag-0.0.1/srcdeps-test-artifact-0.0.1-SRC-tag-0.0.1.jar")
+assert testJar.isFile()

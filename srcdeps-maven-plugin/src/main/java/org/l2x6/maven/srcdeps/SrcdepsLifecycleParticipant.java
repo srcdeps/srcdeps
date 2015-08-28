@@ -75,7 +75,7 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                         SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
                                 (Xpp3Dom) conf, session).build();
                         @SuppressWarnings("unchecked")
-                        Map<Dependency, String> revisions = filterSrcdeps(project.getDependencies());
+                        Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies());
                         new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
                                 revisions).install();
                     }
@@ -84,14 +84,14 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
         }
     }
 
-    private Map<Dependency, String> filterSrcdeps(List<Dependency> deps) {
-        Map<Dependency, String> revisions = new HashMap<Dependency, String>();
+    private Map<Dependency, ScmVersion> filterSrcdeps(List<Dependency> deps) {
+        Map<Dependency, ScmVersion> revisions = new HashMap<Dependency, ScmVersion>();
         logger.info("About to check " + deps.size() + " compile dependencies");
         for (Dependency dep : deps) {
-            String srcRevision = SrcdepsUtils.getSourceRevision(dep.getVersion());
-            logger.info("Got source revision '" + srcRevision + "' from " + dep);
-            if (srcRevision != null) {
-                revisions.put(dep, srcRevision);
+            ScmVersion scmVersion = ScmVersion.fromSrcdepsVersionString(dep.getVersion());
+            logger.info("Got source revision '" + scmVersion + "' from " + dep);
+            if (scmVersion != null) {
+                revisions.put(dep, scmVersion);
             }
         }
         revisions = Collections.unmodifiableMap(revisions);

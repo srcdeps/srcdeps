@@ -41,14 +41,14 @@ public class SrcdepsInstaller {
     private final Logger logger;
 
     private final SrcdepsConfiguration configuration;
-    private final Map<Dependency, String> revisions;
+    private final Map<Dependency, ScmVersion> revisions;
     private final MavenSession session;
     private final MavenExecutor mavenExecutor;
     private final ReleaseEnvironment releaseEnvironment;
     private final ArtifactHandlerManager artifactHandlerManager;
 
     public SrcdepsInstaller(MavenSession session, Logger logger, ArtifactHandlerManager artifactHandlerManager,
-            SrcdepsConfiguration configuration, Map<Dependency, String> revisions) {
+            SrcdepsConfiguration configuration, Map<Dependency, ScmVersion> revisions) {
         super();
         this.session = session;
         this.logger = logger;
@@ -82,9 +82,9 @@ public class SrcdepsInstaller {
         }
 
         String srcAbsPath = checkoutDir.getAbsolutePath();
-
+        ScmVersion scmVersion = depBuild.getScmVersion();
         String args = "-DcheckoutDirectory=" + srcAbsPath + " -DconnectionUrl=" + depBuild.getUrl()
-                + " -DscmVersionType=revision -DscmVersion=" + depBuild.getRevisionId();
+                + " -DscmVersionType="+ scmVersion.getVersionType() +" -DscmVersion=" + scmVersion.getVersion();
 
         mavenExecutor.executeGoals(new File(session.getExecutionRootDirectory()),
                 "org.apache.maven.plugins:maven-scm-plugin:" + configuration.getScmPluginVersion() + ":checkout",
@@ -109,7 +109,7 @@ public class SrcdepsInstaller {
 
         ArtifactRepository localRepo = session.getLocalRepository();
 
-        for (Map.Entry<Dependency, String> revisionEntry : revisions.entrySet()) {
+        for (Map.Entry<Dependency, ScmVersion> revisionEntry : revisions.entrySet()) {
             Dependency dep = revisionEntry.getKey();
 
             Artifact artifact = new DefaultArtifact(dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
@@ -121,7 +121,7 @@ public class SrcdepsInstaller {
                 logger.info("Source dependency available in local repository: "+ artifactFile.getAbsolutePath());
             } else {
                 logger.info("Source dependency missing in local repository: "+ artifactFile.getAbsolutePath());
-                String depRevisionId = revisionEntry.getValue();
+                ScmVersion scmVersion = revisionEntry.getValue();
                 Repository repo = findRepository(dep);
                 if (repo == null) {
                     if (configuration.isFailOnMissingRepository()) {
@@ -133,15 +133,15 @@ public class SrcdepsInstaller {
                     String url = repo.getUrl();
                     DependencyBuild depBuild = depBuilds.get(url);
                     if (depBuild != null) {
-                        String foundRevisionId = depBuild.getRevisionId();
-                        if (foundRevisionId != null && !foundRevisionId.equals(depRevisionId)) {
+                        ScmVersion foundScmVersion = depBuild.getScmVersion();
+                        if (foundScmVersion != null && !foundScmVersion.equals(scmVersion)) {
                             throw new RuntimeException("Cannot handle two revisions for the same repository URL '" + url
-                                    + "': '" + foundRevisionId + "' and '" + depRevisionId + "' of " + dep);
+                                    + "': '" + foundScmVersion + "' and '" + scmVersion + "' of " + dep);
                         }
                     } else {
                         /* checkout == null */
                         depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(), url,
-                                dep.getVersion(), depRevisionId);
+                                dep.getVersion(), scmVersion);
                         depBuilds.put(url, depBuild);
                     }
                 }

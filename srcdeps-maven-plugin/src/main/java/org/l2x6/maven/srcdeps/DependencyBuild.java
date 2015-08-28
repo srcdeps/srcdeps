@@ -20,15 +20,15 @@ import java.io.File;
 
 public class DependencyBuild {
     private final String id;
-    private final String revisionId;
+    private final ScmVersion scmVersion;
     private final String url;
     private final String version;
     private final File workingDirectory;
-    public DependencyBuild(File sourcesDirectory, String id, String url, String version, String revisionId) {
+    public DependencyBuild(File sourcesDirectory, String id, String url, String version, ScmVersion scmVersion) {
         super();
         this.id = id;
         this.url = url;
-        this.revisionId = revisionId;
+        this.scmVersion = scmVersion;
         this.version = version;
         this.workingDirectory = new File(sourcesDirectory, id);
     }
@@ -37,8 +37,8 @@ public class DependencyBuild {
         return id;
     }
 
-    public String getRevisionId() {
-        return revisionId;
+    public ScmVersion getScmVersion() {
+        return scmVersion;
     }
 
     public String getUrl() {

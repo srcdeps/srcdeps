@@ -22,14 +22,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.l2x6.maven.it</groupId>
-  <artifactId>simple-it</artifactId>
+  <artifactId>it-srcdeps-branch</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>A simple IT verifying the basic use case.</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version.org.l2x6.maven.srcdeps.itest>
+    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-branch-morning-branch</version.org.l2x6.maven.srcdeps.itest>
   </properties>
 
   <modules>

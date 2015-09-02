@@ -38,6 +38,31 @@ import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
 
 public class SrcdepsInstaller {
 
+    private static class ArgsBuilder {
+        private final StringBuilder builder = new StringBuilder();
+
+        public ArgsBuilder nonDefaultProp(String key, boolean value, boolean defaultValue) {
+            if (defaultValue != value) {
+                prop(key, String.valueOf(value));
+            }
+            return this;
+        }
+
+        public ArgsBuilder prop(String key, String value) {
+            if (builder.length() != 0) {
+                builder.append(' ');
+            }
+            // FIXME: we should check and eventually quote and/or escape the the
+            // whole param
+            builder.append("-D").append(key).append('=').append(value);
+            return this;
+        }
+
+        public String build() {
+            return builder.toString();
+        }
+    }
+
     private final Logger logger;
 
     private final SrcdepsConfiguration configuration;
@@ -57,7 +82,7 @@ public class SrcdepsInstaller {
         this.revisions = revisions;
         try {
             this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
-            logger.info("mavenExecutor = "+ mavenExecutor);
+            logger.info("mavenExecutor = " + mavenExecutor);
         } catch (ComponentLookupException e) {
             throw new RuntimeException(e);
         }
@@ -81,10 +106,14 @@ public class SrcdepsInstaller {
             checkoutDir.mkdirs();
         }
 
-        String srcAbsPath = checkoutDir.getAbsolutePath();
-        ScmVersion scmVersion = depBuild.getScmVersion();
-        String args = "-DcheckoutDirectory=" + srcAbsPath + " -DconnectionUrl=" + depBuild.getUrl()
-                + " -DscmVersionType="+ scmVersion.getVersionType() +" -DscmVersion=" + scmVersion.getVersion();
+        final ScmVersion scmVersion = depBuild.getScmVersion();
+
+        final String args = new ArgsBuilder().prop("checkoutDirectory", checkoutDir.getAbsolutePath())
+                .prop("connectionUrl", depBuild.getUrl()).prop("scmVersionType", scmVersion.getVersionType())
+                .prop("scmVersion", scmVersion.getVersion()).nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
+                .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
+
+        //logger.info("Using args ["+ args +"]");
 
         mavenExecutor.executeGoals(new File(session.getExecutionRootDirectory()),
                 "org.apache.maven.plugins:maven-scm-plugin:" + configuration.getScmPluginVersion() + ":checkout",
@@ -118,16 +147,19 @@ public class SrcdepsInstaller {
 
             File artifactFile = new File(localRepo.getBasedir(), localRepo.pathOf(artifact));
             if (artifactFile.exists()) {
-                logger.info("Source dependency available in local repository: "+ artifactFile.getAbsolutePath());
+                logger.info("Source dependency available in local repository: " + artifactFile.getAbsolutePath());
             } else {
-                logger.info("Source dependency missing in local repository: "+ artifactFile.getAbsolutePath());
+                logger.info("Source dependency missing in local repository: " + artifactFile.getAbsolutePath());
                 ScmVersion scmVersion = revisionEntry.getValue();
                 Repository repo = findRepository(dep);
                 if (repo == null) {
                     if (configuration.isFailOnMissingRepository()) {
                         throw new RuntimeException("Could not find repository for " + dep);
                     } else {
-                        /* ignore and assume that the user knows what he is doing */
+                        /*
+                         * ignore and assume that the user knows what he is
+                         * doing
+                         */
                     }
                 } else {
                     String url = repo.getUrl();
@@ -141,7 +173,7 @@ public class SrcdepsInstaller {
                     } else {
                         /* checkout == null */
                         depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(), url,
-                                dep.getVersion(), scmVersion);
+                                dep.getVersion(), scmVersion, repo.isSkipTests(), repo.isMavenTestSkip());
                         depBuilds.put(url, depBuild);
                     }
                 }

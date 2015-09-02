@@ -30,122 +30,203 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 public class SrcdepsConfiguration {
     public static class Builder {
-        private static String childValue(Xpp3Dom parentNode, Element childName, String defaultValue) {
-            if (parentNode != null) {
-                Xpp3Dom childNode = parentNode.getChild(childName.name());
-                if (childNode != null) {
-                    String val = childNode.getValue();
-                    if (val != null) {
-                        return val;
-                    }
-                }
-            }
-            return defaultValue;
-        }
 
         private final Xpp3Dom dom;
 
-        private final PluginParameterExpressionEvaluator evaluator;
+        private final PropsEvaluator evaluator;
 
         public Builder(Plugin plugin, Xpp3Dom dom, MavenSession session) {
             super();
             this.dom = dom;
             MojoExecution mojoExecution = new MojoExecution(plugin, "install", "whatever");
-            this.evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
+            this.evaluator = new PropsEvaluator(new PluginParameterExpressionEvaluator(session, mojoExecution));
         }
 
         public SrcdepsConfiguration build() {
+
+            final boolean failOnMissingRepository = Optional
+                    .ofNullable(dom.getChild(Element.failOnMissingRepository.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.createStringSupplier(Element.failOnMissingRepository)).map(Mapper.TO_BOOLEAN)
+                    .orElseGet(Supplier.Constant.FALSE).value();
+
+            final File sourcesDirectory = Optional.ofNullable(dom.getChild(Element.sourcesDirectory.name()))
+                    .map(Mapper.NODE_VALUE).orElseGet(evaluator.createStringSupplier(Element.sourcesDirectory))
+                    .orElseGet(evaluator.createStringSupplier("${settings.localRepository}/../dependency-sources"))
+                    .map(Mapper.TO_FILE).value();
+
+            final File javaHome = Optional.ofNullable(dom.getChild(Element.javaHome.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.createStringSupplier(Element.javaHome))
+                    .orElseGet(evaluator.createStringSupplier("${java.home}")).map(Mapper.TO_FILE).value();
+
+            final File mavenHome = Optional.ofNullable(dom.getChild(Element.mavenHome.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.createStringSupplier(Element.mavenHome))
+                    .orElseGet(evaluator.createStringSupplier("${maven.home}")).map(Mapper.TO_FILE).value();
+
+            final String scmPluginVersion = Optional.ofNullable(dom.getChild(Element.scmPluginVersion.name()))
+                    .map(Mapper.NODE_VALUE).orElseGet(evaluator.createStringSupplier(Element.scmPluginVersion))
+                    .orElseGet(new Supplier.Constant<String>("1.9.4")).value();
+
+            final boolean skipTests = Optional.ofNullable(dom.getChild(Element.skipTests.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.createStringSupplier(Element.skipTests)).map(Mapper.TO_BOOLEAN)
+                    .orElseGet(Supplier.Constant.FALSE).value();
+
+            final boolean mavenTestSkip = Optional.ofNullable(dom.getChild(Element.mavenTestSkip.name()))
+                    .map(Mapper.NODE_VALUE).orElseGet(evaluator.createStringSupplier(Element.mavenTestSkip))
+                    .map(Mapper.TO_BOOLEAN).orElseGet(Supplier.Constant.FALSE).value();
 
             Xpp3Dom reposElem = dom.getChild(Element.repositories.name());
             List<Repository> repos = new ArrayList<Repository>();
             if (reposElem != null) {
                 Xpp3Dom[] reposElems = reposElem.getChildren(Element.repository.name());
                 for (Xpp3Dom repoElem : reposElems) {
-                    repos.add(Repository.load(repoElem));
+                    repos.add(Repository.load(repoElem, skipTests, mavenTestSkip));
                 }
             }
 
-            try {
-                String strMissingRepo = (String) evaluator.evaluate("${srcdeps.failOnMissingRepository}");
-                boolean failOnMissingRepository = false;
-                if (strMissingRepo != null) {
-                    failOnMissingRepository = Boolean.parseBoolean(strMissingRepo);
-                } else {
-                    failOnMissingRepository = Boolean
-                            .parseBoolean(childValue(dom, Element.failOnMissingRepository, Boolean.FALSE.toString()));
-                }
-
-                File sourcesDirectory = null;
-                String srcDir = (String) evaluator.evaluate("${srcdeps.sourcesDirectory}");
-                childValue(dom, Element.sourcesDirectory, null);
-                if (srcDir != null) {
-                    sourcesDirectory = new File(srcDir);
-                } else {
-                    sourcesDirectory = new File(
-                            (String) eval("${srcdeps.sourcesDirectory}",
-                                    "${settings.localRepository}/../dependency-sources"));
-                }
-
-                File javaHome = null;
-                String srcJavaHome = (String) evaluator.evaluate("${srcdeps.javaHome}");
-                childValue(dom, Element.javaHome, null);
-                if (srcDir != null) {
-                    javaHome = new File(srcJavaHome);
-                } else {
-                    javaHome = new File((String) evaluator.evaluate("${java.home}"));
-                }
-
-                File mavenHome = null;
-                String srcMavenHome = (String) evaluator.evaluate("${srcdeps.mavenHome}");
-                childValue(dom, Element.mavenHome, null);
-                if (srcDir != null) {
-                    mavenHome = new File(srcMavenHome);
-                } else {
-                    mavenHome = new File((String) evaluator.evaluate("${maven.home}"));
-                }
-
-                String scmPluginVersion = (String) evaluator.evaluate("${srcdeps.scmPluginVersion}");
-                if (scmPluginVersion == null) {
-                    scmPluginVersion = "1.9.4";
-                }
-
-                return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
-                        sourcesDirectory, mavenHome, javaHome, scmPluginVersion);
-            } catch (ExpressionEvaluationException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private Object eval(String expression, String fallbackExpression) {
-            try {
-                Object result = evaluator.evaluate(expression);
-                if (result != null) {
-                    return result;
-                } else {
-                    return evaluator.evaluate(fallbackExpression);
-                }
-            } catch (ExpressionEvaluationException e) {
-                throw new RuntimeException(e);
-            }
+            return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
+                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip);
         }
 
     }
 
     enum Element {
-        failOnMissingRepository, id, javaHome, mavenHome, repositories, repository, scmPluginVersion, selector,
-        selectors, sourcesDirectory, url;
+        failOnMissingRepository, id, javaHome, mavenHome, mavenTestSkip, repositories, repository, scmPluginVersion,
+        selector, selectors, skipTests, sourcesDirectory, url;
+
+        public String toSrcDepsPropertyExpression() {
+            return "${srcdeps." + toString() + "}";
+        }
+    }
+
+    public interface Mapper<T, R> {
+        Mapper<Xpp3Dom, String> NODE_VALUE = new Mapper<Xpp3Dom, String>() {
+            @Override
+            public String map(Xpp3Dom node) {
+                return node != null ? node.getValue() : null;
+            }
+        };
+        Mapper<String, Boolean> TO_BOOLEAN = new Mapper<String, Boolean>() {
+            @Override
+            public Boolean map(String value) {
+                return value == null ? null : Boolean.valueOf(value);
+            }
+        };
+        Mapper<String, File> TO_FILE = new Mapper<String, File>() {
+            @Override
+            public File map(String value) {
+                return new File(value);
+            }
+        };
+
+        R map(T t);
+    }
+
+    public static class Optional<T> {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        private static Optional<?> EMPTY = new Optional(null);
+
+        @SuppressWarnings("unchecked")
+        public static final <T> Optional<T> empty() {
+            return (Optional<T>) EMPTY;
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T> Optional<T> ofNullable(T value) {
+            return value == null ? (Optional<T>) empty() : new Optional<T>(value);
+        }
+
+        private final T value;
+
+        public Optional(T value) {
+            super();
+            this.value = value;
+        }
+
+        public boolean isPresent() {
+            return value != null;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <U> Optional<U> map(Mapper<? super T, ? extends U> mapper) {
+            if (!isPresent())
+                return empty();
+            else {
+                return (Optional<U>) ofNullable(mapper.map(value));
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        public Optional<T> orElseGet(Supplier<? extends T> other) {
+            if (!isPresent())
+                return (Optional<T>) ofNullable(other.get());
+            else {
+                return this;
+            }
+        }
+
+        public T value() {
+            return value;
+        }
+
+    }
+
+    public static class PropsEvaluator {
+        private final PluginParameterExpressionEvaluator evaluator;
+
+        public PropsEvaluator(PluginParameterExpressionEvaluator evaluator) {
+            super();
+            this.evaluator = evaluator;
+        }
+
+        public Supplier<String> createStringSupplier(final Element element) {
+            return createStringSupplier(element.toSrcDepsPropertyExpression());
+        }
+
+        public Supplier<String> createStringSupplier(final String expression) {
+            return new Supplier<String>() {
+                @Override
+                public String get() {
+                    try {
+                        return (String) evaluator.evaluate(expression);
+                    } catch (ExpressionEvaluationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+        }
+
+    }
+
+    public interface Supplier<T> {
+        public static class Constant<T> implements Supplier<T> {
+            public static final Supplier<Boolean> FALSE = new Constant<Boolean>(Boolean.FALSE);
+            private final T value;
+
+            public Constant(T value) {
+                super();
+                this.value = value;
+            }
+
+            public T get() {
+                return value;
+            }
+        }
+
+        T get();
     }
 
     private final boolean failOnMissingRepository;
     private final File javaHome;
     private final File mavenHome;
+    private final boolean mavenTestSkip;
     private final List<Repository> repositories;
     private final String scmPluginVersion;
 
+    private final boolean skipTests;
     private final File sourcesDirectory;
 
     private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
-            File mavenHome, File javaHome, String scmPluginVersion) {
+            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip) {
         super();
         this.repositories = repositories;
         this.failOnMissingRepository = failOnMissingRepository;
@@ -153,6 +234,8 @@ public class SrcdepsConfiguration {
         this.mavenHome = mavenHome;
         this.javaHome = javaHome;
         this.scmPluginVersion = scmPluginVersion;
+        this.skipTests = skipTests;
+        this.mavenTestSkip = mavenTestSkip;
     }
 
     public File getJavaHome() {
@@ -179,10 +262,19 @@ public class SrcdepsConfiguration {
         return failOnMissingRepository;
     }
 
+    public boolean isMavenTestSkip() {
+        return mavenTestSkip;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
+    }
+
     @Override
     public String toString() {
         return "SrcdepsConfiguration [failOnMissingRepository=" + failOnMissingRepository + ", javaHome=" + javaHome
                 + ", mavenHome=" + mavenHome + ", repositories=" + repositories + ", scmPluginVersion="
-                + scmPluginVersion + ", sourcesDirectory=" + sourcesDirectory + "]";
+                + scmPluginVersion + ", sourcesDirectory=" + sourcesDirectory + ", skipTests=" + skipTests
+                + ", mavenTestSkip=" + mavenTestSkip + "]";
     }
 }

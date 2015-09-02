@@ -27,6 +27,7 @@ public class SrcdepsUtils {
             return null;
         }
     }
+
     public static boolean matches(Dependency dependency, String selector) {
         /* as simple as possible initially */
         return dependency.getGroupId().equals(selector);

@@ -21,9 +21,12 @@ import java.util.List;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
+import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Mapper;
+import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Optional;
+import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Supplier;
 
 public class Repository {
-    public static Repository load(Xpp3Dom repoElem) {
+    public static Repository load(Xpp3Dom repoElem, boolean skipTestsDefault, boolean mavenTestSkipDefault) {
         List<String> selectors = new ArrayList<String>();
         Xpp3Dom selectorsElem = repoElem.getChild(Element.selectors.name());
         if (selectorsElem != null) {
@@ -32,19 +35,31 @@ public class Repository {
                 selectors.add(selectorElem.getValue());
             }
         }
+
+        final boolean skipTests = Optional.ofNullable(repoElem.getChild(Element.skipTests.name()))
+                .map(Mapper.NODE_VALUE).map(Mapper.TO_BOOLEAN)
+                .orElseGet(new Supplier.Constant<Boolean>(Boolean.valueOf(skipTestsDefault))).value();
+        final boolean mavenTestSkip = Optional.ofNullable(repoElem.getChild(Element.mavenTestSkip.name()))
+                .map(Mapper.NODE_VALUE).map(Mapper.TO_BOOLEAN)
+                .orElseGet(new Supplier.Constant<Boolean>(Boolean.valueOf(mavenTestSkipDefault))).value();
+
         return new Repository(repoElem.getChild(Element.id.name()).getValue(), selectors,
-                repoElem.getChild(Element.url.name()).getValue());
+                repoElem.getChild(Element.url.name()).getValue(), skipTests, mavenTestSkip);
     }
 
     private final String id;
     private final List<String> selectors;
     private final String url;
+    private final boolean skipTests;
+    private final boolean mavenTestSkip;
 
-    public Repository(String id, List<String> selectors, String url) {
+    public Repository(String id, List<String> selectors, String url, boolean skipTests, boolean mavenTestSkip) {
         super();
         this.id = id;
         this.selectors = selectors;
         this.url = url;
+        this.skipTests = skipTests;
+        this.mavenTestSkip = mavenTestSkip;
     }
 
     public String getId() {
@@ -57,5 +72,13 @@ public class Repository {
 
     public String getUrl() {
         return url;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
+    }
+
+    public boolean isMavenTestSkip() {
+        return mavenTestSkip;
     }
 }

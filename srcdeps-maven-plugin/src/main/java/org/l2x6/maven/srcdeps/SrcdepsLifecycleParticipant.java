@@ -64,10 +64,10 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
         logger.info("goals = " + goals);
         if (goals != null && shouldTriggerSrcdepsBuild(goals)) {
             List<MavenProject> projects = session.getProjects();
-            logger.info("SrcdepsLifecycleParticipant projects = "+ projects);
+            logger.info("SrcdepsLifecycleParticipant projects = " + projects);
 
             for (MavenProject project : projects) {
-                logger.info("srcdeps for project "+ project.getGroupId() +":"+ project.getArtifactId());
+                logger.info("srcdeps for project " + project.getGroupId() + ":" + project.getArtifactId());
                 Plugin plugin = findSrcdepsPlugin(project);
                 if (plugin != null) {
                     Object conf = plugin.getConfiguration();
@@ -76,8 +76,8 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                                 (Xpp3Dom) conf, session).build();
                         @SuppressWarnings("unchecked")
                         Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies());
-                        new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
-                                revisions).install();
+                        new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration, revisions)
+                                .install();
                     }
                 }
             }

@@ -24,12 +24,19 @@ public class DependencyBuild {
     private final String url;
     private final String version;
     private final File workingDirectory;
-    public DependencyBuild(File sourcesDirectory, String id, String url, String version, ScmVersion scmVersion) {
+    private final boolean mavenTestSkip;
+    private final boolean skipTests;
+
+    public DependencyBuild(File sourcesDirectory, String id, String url, String version, ScmVersion scmVersion,
+            boolean skipTests, boolean mavenTestSkip) {
         super();
         this.id = id;
         this.url = url;
         this.scmVersion = scmVersion;
         this.version = version;
+        this.skipTests = skipTests;
+        this.mavenTestSkip = mavenTestSkip;
+
         this.workingDirectory = new File(sourcesDirectory, id);
     }
 
@@ -51,6 +58,14 @@ public class DependencyBuild {
 
     public File getWorkingDirectory() {
         return workingDirectory;
+    }
+
+    public boolean isMavenTestSkip() {
+        return mavenTestSkip;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
     }
 
 }

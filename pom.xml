@@ -23,7 +23,7 @@
 
     <groupId>org.l2x6.maven.srcdeps</groupId>
     <artifactId>srcdeps-maven-plugin-parent</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Maven Source Dependencies Plugin Parent</name>

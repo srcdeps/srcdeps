@@ -86,6 +86,12 @@
         <checkstyle.configLocation>checkstyle.xml</checkstyle.configLocation>
         <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
         <checkstyle.failOnError>true</checkstyle.failOnError>
+        <checkstyle.includes>
+          src/**/*.java
+        </checkstyle.includes>
+        <checkstyle.excludes>
+          target/**
+        </checkstyle.excludes>
 
         <!-- license-maven-plugin -->
         <license.failIfMissing>true</license.failIfMissing>
@@ -358,6 +364,9 @@
                     <configLocation>${checkstyle.configLocation}</configLocation>
                     <consoleOutput>${checkstyle.consoleOutput}</consoleOutput>
                     <failsOnError>${checkstyle.failOnError}</failsOnError>
+                    <excludes>${checkstyle.excludes}</excludes>
+                    <includes>${checkstyle.includes}</includes>
+                    <sourceDirectory>${basedir}</sourceDirectory>
                     <useFile />
                 </configuration>
                 <dependencies>

@@ -63,11 +63,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>${snapshots.repo.url}</url>
         </snapshotRepository>
         <repository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>${releases.repo.url}</url>
         </repository>
     </distributionManagement>
 
@@ -97,7 +97,10 @@
         <!-- nexus-staging-maven-plugin -->
         <autoReleaseAfterClose>true</autoReleaseAfterClose>
 
-
+        <!-- Repository Deployment URLs -->
+        <oss.nexus.base.url>https://oss.sonatype.org</oss.nexus.base.url>
+        <releases.repo.url>${oss.nexus.base.url}/service/local/staging/deploy/maven2/</releases.repo.url>
+        <snapshots.repo.url>${oss.nexus.base.url}/content/repositories/snapshots/</snapshots.repo.url>
 
         <!--
           Maven plugin versions
@@ -426,6 +429,17 @@
                         <requireNoRepositories />
                         <requirePluginVersions />
                     </rules>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <nexusUrl>${oss.nexus.base.url}</nexusUrl>
+                    <!-- The server "id" element from settings to use authentication from -->
+                    <serverId>ossrh-repository</serverId>
                 </configuration>
             </plugin>
 

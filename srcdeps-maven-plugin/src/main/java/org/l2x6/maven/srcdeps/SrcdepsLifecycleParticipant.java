@@ -122,7 +122,7 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        logger.info("SrcdepsLifecycleParticipant");
+        logger.info("srcdeps-maven-plugin lifecycle participant starting");
 
         List<String> goals = session.getGoals();
 
@@ -144,6 +144,9 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                     if (conf instanceof Xpp3Dom) {
                         SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
                                 (Xpp3Dom) conf, session).build();
+                        if (srcdepsConfiguration.isSkip()) {
+                            logger.info("  skipping srcdeps for project " + project.getGroupId() + ":" + project.getArtifactId());
+                        }
                         @SuppressWarnings("unchecked")
                         Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(), projectGavs);
                         new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration, revisions)

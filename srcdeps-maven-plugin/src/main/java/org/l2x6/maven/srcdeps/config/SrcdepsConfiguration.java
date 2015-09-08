@@ -66,6 +66,10 @@ public class SrcdepsConfiguration {
                     .map(Mapper.NODE_VALUE).orElseGet(evaluator.createStringSupplier(Element.scmPluginVersion))
                     .orElseGet(new Supplier.Constant<String>("1.9.4")).value();
 
+            final boolean skip = Optional.ofNullable(dom.getChild(Element.skip.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.createStringSupplier(Element.skip)).map(Mapper.TO_BOOLEAN)
+                    .orElseGet(Supplier.Constant.FALSE).value();
+
             final boolean skipTests = Optional.ofNullable(dom.getChild(Element.skipTests.name())).map(Mapper.NODE_VALUE)
                     .orElseGet(evaluator.createStringSupplier(Element.skipTests)).map(Mapper.TO_BOOLEAN)
                     .orElseGet(Supplier.Constant.FALSE).value();
@@ -84,14 +88,14 @@ public class SrcdepsConfiguration {
             }
 
             return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
-                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip);
+                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skip, skipTests, mavenTestSkip);
         }
 
     }
 
     enum Element {
         failOnMissingRepository, id, javaHome, mavenHome, mavenTestSkip, repositories, repository, scmPluginVersion,
-        selector, selectors, skipTests, sourcesDirectory, url;
+        selector, selectors, skip, skipTests, sourcesDirectory, url;
 
         public String toSrcDepsPropertyExpression() {
             return "${srcdeps." + toString() + "}";
@@ -221,12 +225,13 @@ public class SrcdepsConfiguration {
     private final boolean mavenTestSkip;
     private final List<Repository> repositories;
     private final String scmPluginVersion;
-
+    private final boolean skip;
     private final boolean skipTests;
-    private final File sourcesDirectory;
 
+    private final File sourcesDirectory;
     private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
-            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip) {
+            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip,
+            boolean skip) {
         super();
         this.repositories = repositories;
         this.failOnMissingRepository = failOnMissingRepository;
@@ -234,6 +239,7 @@ public class SrcdepsConfiguration {
         this.mavenHome = mavenHome;
         this.javaHome = javaHome;
         this.scmPluginVersion = scmPluginVersion;
+        this.skip = skip;
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
     }
@@ -264,6 +270,10 @@ public class SrcdepsConfiguration {
 
     public boolean isMavenTestSkip() {
         return mavenTestSkip;
+    }
+
+    public boolean isSkip() {
+        return skip;
     }
 
     public boolean isSkipTests() {

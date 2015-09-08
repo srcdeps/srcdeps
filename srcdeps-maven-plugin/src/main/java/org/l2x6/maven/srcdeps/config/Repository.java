@@ -48,10 +48,10 @@ public class Repository {
     }
 
     private final String id;
-    private final List<String> selectors;
-    private final String url;
-    private final boolean skipTests;
     private final boolean mavenTestSkip;
+    private final List<String> selectors;
+    private final boolean skipTests;
+    private final String url;
 
     public Repository(String id, List<String> selectors, String url, boolean skipTests, boolean mavenTestSkip) {
         super();
@@ -60,6 +60,37 @@ public class Repository {
         this.url = url;
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Repository other = (Repository) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (mavenTestSkip != other.mavenTestSkip)
+            return false;
+        if (selectors == null) {
+            if (other.selectors != null)
+                return false;
+        } else if (!selectors.equals(other.selectors))
+            return false;
+        if (skipTests != other.skipTests)
+            return false;
+        if (url == null) {
+            if (other.url != null)
+                return false;
+        } else if (!url.equals(other.url))
+            return false;
+        return true;
     }
 
     public String getId() {
@@ -74,11 +105,29 @@ public class Repository {
         return url;
     }
 
-    public boolean isSkipTests() {
-        return skipTests;
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + (mavenTestSkip ? 1231 : 1237);
+        result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
+        result = prime * result + (skipTests ? 1231 : 1237);
+        result = prime * result + ((url == null) ? 0 : url.hashCode());
+        return result;
     }
 
     public boolean isMavenTestSkip() {
         return mavenTestSkip;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
+    }
+
+    @Override
+    public String toString() {
+        return "Repository [id=" + id + ", selectors=" + selectors + ", url=" + url + ", skipTests=" + skipTests
+                + ", mavenTestSkip=" + mavenTestSkip + "]";
     }
 }

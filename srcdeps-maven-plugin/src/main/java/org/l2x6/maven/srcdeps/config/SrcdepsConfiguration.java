@@ -286,8 +286,9 @@ public class SrcdepsConfiguration {
     @Override
     public String toString() {
         return "SrcdepsConfiguration [failOnMissingRepository=" + failOnMissingRepository + ", javaHome=" + javaHome
-                + ", mavenHome=" + mavenHome + ", repositories=" + repositories + ", scmPluginVersion="
-                + scmPluginVersion + ", sourcesDirectory=" + sourcesDirectory + ", skipTests=" + skipTests
-                + ", mavenTestSkip=" + mavenTestSkip + "]";
+                + ", mavenHome=" + mavenHome + ", mavenTestSkip=" + mavenTestSkip + ", repositories=" + repositories
+                + ", scmPluginVersion=" + scmPluginVersion + ", skip=" + skip + ", skipTests=" + skipTests
+                + ", sourcesDirectory=" + sourcesDirectory + "]";
     }
+
 }

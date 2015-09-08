@@ -36,6 +36,7 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
+import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -122,8 +123,14 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        logger.info("srcdeps-maven-plugin lifecycle participant starting");
+        boolean globalSkip = Boolean
+                .valueOf(session.getUserProperties().getProperty(Element.skip.toSrcDepsProperty(), "false"));
+        if (globalSkip) {
+            logger.info("srcdeps-maven-plugin skipped");
+            return;
+        }
 
+        logger.info("srcdeps-maven-plugin lifecycle participant starting");
         List<String> goals = session.getGoals();
 
         logger.info("goals = " + goals);
@@ -145,12 +152,15 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                         SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
                                 (Xpp3Dom) conf, session).build();
                         if (srcdepsConfiguration.isSkip()) {
-                            logger.info("  skipping srcdeps for project " + project.getGroupId() + ":" + project.getArtifactId());
+                            logger.info("  skipping srcdeps for project " + project.getGroupId() + ":"
+                                    + project.getArtifactId());
+                        } else {
+                            @SuppressWarnings("unchecked")
+                            Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(),
+                                    projectGavs);
+                            new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
+                                    revisions).install();
                         }
-                        @SuppressWarnings("unchecked")
-                        Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(), projectGavs);
-                        new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration, revisions)
-                                .install();
                     }
                 }
             }

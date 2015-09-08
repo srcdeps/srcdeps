@@ -93,12 +93,15 @@ public class SrcdepsConfiguration {
 
     }
 
-    enum Element {
+    public enum Element {
         failOnMissingRepository, id, javaHome, mavenHome, mavenTestSkip, repositories, repository, scmPluginVersion,
         selector, selectors, skip, skipTests, sourcesDirectory, url;
 
         public String toSrcDepsPropertyExpression() {
             return "${srcdeps." + toString() + "}";
+        }
+        public String toSrcDepsProperty() {
+            return "srcdeps." + toString();
         }
     }
 

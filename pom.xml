@@ -332,6 +332,7 @@
                         <exclude>**/README</exclude>
                         <exclude>**/README.*</exclude>
                         <exclude>**/license-header-template.txt</exclude>
+                        <exclude>**/LICENSE.*</exclude>
                         <exclude>**/*.html</exclude>
                         <exclude>**/*.htm</exclude>
                     </excludes>

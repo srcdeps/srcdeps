@@ -80,7 +80,7 @@ rid of both SNAPSHOTS and releases. Srcdeps Maven Plugin does exactly that.
 
 == How does Srcdeps Plugin work
 
-* Srcdeps Plugin frist collects dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
+* Srcdeps Plugin first collects dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
 * The it finds the URL of the SCM repository corresponding to the dependency groupId in the configuration of the plugin
 * It passes the URL, `{srcVersionType}` and `{srcVersion}` to the SCM Maven Plugin to check out the desired version
   of the sources to `~/.m2/dependency-sources`

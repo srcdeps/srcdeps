@@ -82,7 +82,7 @@ public class SrcdepsInstaller {
         this.revisions = revisions;
         try {
             this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
-            logger.info("mavenExecutor = " + mavenExecutor);
+            logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor +"]");
         } catch (ComponentLookupException e) {
             throw new RuntimeException(e);
         }
@@ -92,15 +92,24 @@ public class SrcdepsInstaller {
     }
 
     protected void build(DependencyBuild depBuild) throws MavenExecutorException {
+        logger.info("srcdeps-maven-plugin is setting version [" + depBuild.getId() + "] version ["
+                + depBuild.getVersion() + "] from [" + depBuild.getUrl() + "]");
+
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "versions:set", releaseEnvironment, false,
                 "-DnewVersion=" + depBuild.getVersion() + " -DgenerateBackupPoms=false", "pom.xml",
                 new ReleaseResult());
 
+        logger.info("srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion()
+                + "] from [" + depBuild.getUrl() + "]");
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false, null,
                 "pom.xml", new ReleaseResult());
     }
 
     protected void checkout(DependencyBuild depBuild) throws MavenExecutorException {
+
+        logger.info("srcdeps-maven-plugin is checking out [" + depBuild.getId() + "] version [" + depBuild.getVersion()
+                + "] from [" + depBuild.getUrl() + "]");
+
         File checkoutDir = depBuild.getWorkingDirectory();
         if (!checkoutDir.exists()) {
             checkoutDir.mkdirs();
@@ -113,7 +122,7 @@ public class SrcdepsInstaller {
                 .prop("scmVersion", scmVersion.getVersion()).nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
                 .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
 
-        //logger.info("Using args ["+ args +"]");
+        // logger.info("Using args ["+ args +"]");
 
         mavenExecutor.executeGoals(new File(session.getExecutionRootDirectory()),
                 "org.apache.maven.plugins:maven-scm-plugin:" + configuration.getScmPluginVersion() + ":checkout",

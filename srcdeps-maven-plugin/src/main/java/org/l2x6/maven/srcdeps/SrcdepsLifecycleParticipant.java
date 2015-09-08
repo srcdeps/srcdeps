@@ -130,13 +130,10 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
             return;
         }
 
-        logger.info("srcdeps-maven-plugin lifecycle participant starting");
         List<String> goals = session.getGoals();
-
-        logger.info("goals = " + goals);
         if (goals != null && shouldTriggerSrcdepsBuild(goals)) {
             List<MavenProject> projects = session.getProjects();
-            logger.info("SrcdepsLifecycleParticipant projects = " + projects);
+            logger.debug("SrcdepsLifecycleParticipant projects = " + projects);
 
             Set<Gav> projectGavs = new HashSet<SrcdepsLifecycleParticipant.Gav>();
             for (MavenProject project : projects) {
@@ -144,7 +141,8 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
             }
 
             for (MavenProject project : projects) {
-                logger.info("srcdeps for project " + project.getGroupId() + ":" + project.getArtifactId());
+                logger.info("srcdeps-maven-plugin scanning project " + project.getGroupId() + ":"
+                        + project.getArtifactId());
                 Plugin plugin = findSrcdepsPlugin(project);
                 if (plugin != null) {
                     Object conf = plugin.getConfiguration();
@@ -152,7 +150,7 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                         SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
                                 (Xpp3Dom) conf, session).build();
                         if (srcdepsConfiguration.isSkip()) {
-                            logger.info("  skipping srcdeps for project " + project.getGroupId() + ":"
+                            logger.info("srcdeps-maven-plugin skipped for project " + project.getGroupId() + ":"
                                     + project.getArtifactId());
                         } else {
                             @SuppressWarnings("unchecked")
@@ -169,10 +167,10 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
 
     private Map<Dependency, ScmVersion> filterSrcdeps(List<Dependency> deps, Set<Gav> projects) {
         Map<Dependency, ScmVersion> revisions = new HashMap<Dependency, ScmVersion>();
-        logger.info("About to check " + deps.size() + " compile dependencies");
+        logger.debug("srcdeps-maven-plugin scanning " + deps.size() + " compile dependencies");
         for (Dependency dep : deps) {
             ScmVersion scmVersion = ScmVersion.fromSrcdepsVersionString(dep.getVersion());
-            logger.info("Got source revision '" + scmVersion + "' from " + dep);
+            logger.debug("Got source revision '" + scmVersion + "' from " + dep);
             if (scmVersion != null && !projects.contains(Gav.ofDependency(dep))) {
                 revisions.put(dep, scmVersion);
             }
@@ -199,12 +197,13 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
     }
 
     private boolean shouldTriggerSrcdepsBuild(List<String> goals) {
-        logger.info("checking if any of " + goals + " is in " + TRIGGER_PHASES);
         for (String goal : goals) {
             if (TRIGGER_PHASES.contains(goal)) {
+                logger.info("srcdeps-maven-plugin triggered by goal [" + goal + "]");
                 return true;
             }
         }
+        logger.info("srcdeps-maven-plugin not triggered by any of the goals [" + goals + "]");
         return false;
     }
 

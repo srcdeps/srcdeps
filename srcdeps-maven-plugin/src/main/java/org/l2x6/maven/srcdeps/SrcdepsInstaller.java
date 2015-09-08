@@ -93,7 +93,7 @@ public class SrcdepsInstaller {
 
     protected void build(DependencyBuild depBuild) throws MavenExecutorException {
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "versions:set", releaseEnvironment, false,
-                "-D newVersion=" + depBuild.getVersion() + " -DgenerateBackupPoms=false", "pom.xml",
+                "-DnewVersion=" + depBuild.getVersion() + " -DgenerateBackupPoms=false", "pom.xml",
                 new ReleaseResult());
 
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false, null,

@@ -28,6 +28,7 @@ import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
@@ -35,11 +36,76 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
+import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "srcdeps")
 public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipant {
+
+    private static class Gav {
+        public static Gav ofDependency(Dependency dep) {
+            return new Gav(dep.getGroupId(), dep.getArtifactId(), dep.getVersion());
+        }
+
+        public static Gav ofModel(Model model) {
+            return new Gav(model.getGroupId(), model.getArtifactId(), model.getVersion());
+        }
+
+        private final String artifactId;
+        private final String groupId;
+        private final String version;
+
+        public Gav(String groupId, String artifactId, String version) {
+            super();
+            this.groupId = groupId;
+            this.artifactId = artifactId;
+            this.version = version;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Gav other = (Gav) obj;
+            if (artifactId == null) {
+                if (other.artifactId != null)
+                    return false;
+            } else if (!artifactId.equals(other.artifactId))
+                return false;
+            if (groupId == null) {
+                if (other.groupId != null)
+                    return false;
+            } else if (!groupId.equals(other.groupId))
+                return false;
+            if (version == null) {
+                if (other.version != null)
+                    return false;
+            } else if (!version.equals(other.version))
+                return false;
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((artifactId == null) ? 0 : artifactId.hashCode());
+            result = prime * result + ((groupId == null) ? 0 : groupId.hashCode());
+            result = prime * result + ((version == null) ? 0 : version.hashCode());
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "GAV [groupId=" + groupId + ", artifactId=" + artifactId + ", version=" + version + "]";
+        }
+
+    }
 
     @SuppressWarnings("unchecked")
     private static Set<String> TRIGGER_PHASES = Collections.unmodifiableSet(new HashSet<String>(
@@ -57,14 +123,25 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        logger.info("SrcdepsLifecycleParticipant");
+        boolean globalSkip = Boolean
+                .valueOf(session.getUserProperties().getProperty(Element.skip.toSrcDepsProperty(), "false"));
+        if (globalSkip) {
+            logger.info("srcdeps-maven-plugin skipped");
+            return;
+        }
 
+        logger.info("srcdeps-maven-plugin lifecycle participant starting");
         List<String> goals = session.getGoals();
 
         logger.info("goals = " + goals);
         if (goals != null && shouldTriggerSrcdepsBuild(goals)) {
             List<MavenProject> projects = session.getProjects();
             logger.info("SrcdepsLifecycleParticipant projects = " + projects);
+
+            Set<Gav> projectGavs = new HashSet<SrcdepsLifecycleParticipant.Gav>();
+            for (MavenProject project : projects) {
+                projectGavs.add(Gav.ofModel(project.getModel()));
+            }
 
             for (MavenProject project : projects) {
                 logger.info("srcdeps for project " + project.getGroupId() + ":" + project.getArtifactId());
@@ -74,23 +151,29 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                     if (conf instanceof Xpp3Dom) {
                         SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
                                 (Xpp3Dom) conf, session).build();
-                        @SuppressWarnings("unchecked")
-                        Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies());
-                        new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration, revisions)
-                                .install();
+                        if (srcdepsConfiguration.isSkip()) {
+                            logger.info("  skipping srcdeps for project " + project.getGroupId() + ":"
+                                    + project.getArtifactId());
+                        } else {
+                            @SuppressWarnings("unchecked")
+                            Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(),
+                                    projectGavs);
+                            new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
+                                    revisions).install();
+                        }
                     }
                 }
             }
         }
     }
 
-    private Map<Dependency, ScmVersion> filterSrcdeps(List<Dependency> deps) {
+    private Map<Dependency, ScmVersion> filterSrcdeps(List<Dependency> deps, Set<Gav> projects) {
         Map<Dependency, ScmVersion> revisions = new HashMap<Dependency, ScmVersion>();
         logger.info("About to check " + deps.size() + " compile dependencies");
         for (Dependency dep : deps) {
             ScmVersion scmVersion = ScmVersion.fromSrcdepsVersionString(dep.getVersion());
             logger.info("Got source revision '" + scmVersion + "' from " + dep);
-            if (scmVersion != null) {
+            if (scmVersion != null && !projects.contains(Gav.ofDependency(dep))) {
                 revisions.put(dep, scmVersion);
             }
         }

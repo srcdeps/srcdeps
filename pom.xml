@@ -27,7 +27,7 @@
 
     <name>Maven Source Dependencies Plugin Parent</name>
     <description>A Maven plugin that can compile and install current project's dependencies from their sources</description>
-    <url>https://github.com/ppalaga/srcdeps-maven-plugin</url>
+    <url>https://github.com/l2x6/srcdeps-maven-plugin</url>
     <inceptionYear>2015</inceptionYear>
     <licenses>
         <license>
@@ -332,6 +332,7 @@
                         <exclude>**/README</exclude>
                         <exclude>**/README.*</exclude>
                         <exclude>**/license-header-template.txt</exclude>
+                        <exclude>**/LICENSE.*</exclude>
                         <exclude>**/*.html</exclude>
                         <exclude>**/*.htm</exclude>
                     </excludes>

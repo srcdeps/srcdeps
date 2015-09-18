@@ -30,6 +30,8 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -37,6 +39,7 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
+import org.l2x6.maven.srcdeps.util.PropsEvaluator;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
@@ -147,8 +150,11 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                 if (plugin != null) {
                     Object conf = plugin.getConfiguration();
                     if (conf instanceof Xpp3Dom) {
-                        SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(plugin,
-                                (Xpp3Dom) conf, session).build();
+                        MojoExecution mojoExecution = new MojoExecution(plugin, "install", "whatever");
+                        PropsEvaluator evaluator = new PropsEvaluator(
+                                new PluginParameterExpressionEvaluator(session, mojoExecution));
+                        SrcdepsConfiguration srcdepsConfiguration = new SrcdepsConfiguration.Builder(evaluator,
+                                (Xpp3Dom) conf, session, logger).build();
                         if (srcdepsConfiguration.isSkip()) {
                             logger.info("srcdeps-maven-plugin skipped for project " + project.getGroupId() + ":"
                                     + project.getArtifactId());
@@ -156,8 +162,8 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                             @SuppressWarnings("unchecked")
                             Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(),
                                     projectGavs);
-                            new SrcdepsInstaller(session, logger, artifactHandlerManager, srcdepsConfiguration,
-                                    revisions).install();
+                            new SrcdepsInstaller(session, evaluator, logger, artifactHandlerManager,
+                                    srcdepsConfiguration, revisions).install();
                         }
                     }
                 }

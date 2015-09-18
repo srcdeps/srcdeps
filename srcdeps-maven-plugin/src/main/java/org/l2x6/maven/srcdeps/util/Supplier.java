@@ -14,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.maven.srcdeps;
+package org.l2x6.maven.srcdeps.util;
 
-import org.apache.maven.model.Dependency;
+public interface Supplier<T> {
+    public static class Constant<T> implements Supplier<T> {
+        public static final Supplier<String> EMPTY_STRING = new Supplier.Constant<String>("");
+        public static final Supplier<Boolean> FALSE = new Supplier.Constant<Boolean>(Boolean.FALSE);
+        private final T value;
 
-public class SrcdepsUtils {
-    public static String getSourceRevision(String version) {
-        int pos = version.indexOf(SrcdepsConstants.SRC_VERSION_INFIX);
-        if (pos >= 0) {
-            return version.substring(pos + SrcdepsConstants.SRC_VERSION_INFIX.length());
-        } else {
-            return null;
+        public Constant(T value) {
+            super();
+            this.value = value;
+        }
+
+        public T get() {
+            return value;
         }
     }
 
-    public static boolean matches(Dependency dependency, String selector) {
-        /* as simple as possible initially */
-        return dependency.getGroupId().equals(selector);
-    }
+    T get();
 }

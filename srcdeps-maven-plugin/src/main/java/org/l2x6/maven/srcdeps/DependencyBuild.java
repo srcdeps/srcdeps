@@ -20,12 +20,12 @@ import java.io.File;
 
 public class DependencyBuild {
     private final String id;
+    private final boolean mavenTestSkip;
     private final ScmVersion scmVersion;
+    private final boolean skipTests;
     private final String url;
     private final String version;
     private final File workingDirectory;
-    private final boolean mavenTestSkip;
-    private final boolean skipTests;
 
     public DependencyBuild(File sourcesDirectory, String id, String url, String version, ScmVersion scmVersion,
             boolean skipTests, boolean mavenTestSkip) {

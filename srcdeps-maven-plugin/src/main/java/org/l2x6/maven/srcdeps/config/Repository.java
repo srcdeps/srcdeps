@@ -21,9 +21,9 @@ import java.util.List;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
-import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Mapper;
-import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Optional;
-import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Supplier;
+import org.l2x6.maven.srcdeps.util.Mapper;
+import org.l2x6.maven.srcdeps.util.Optional;
+import org.l2x6.maven.srcdeps.util.Supplier;
 
 public class Repository {
     public static Repository load(Xpp3Dom repoElem, boolean skipTestsDefault, boolean mavenTestSkipDefault) {

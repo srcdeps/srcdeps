@@ -41,10 +41,32 @@ public class SrcdepsInstaller {
     private static class ArgsBuilder {
         private final StringBuilder builder = new StringBuilder();
 
+        public ArgsBuilder(SrcdepsConfiguration configuration) {
+            super();
+
+            if (configuration.isQuiet()) {
+                builder.append("-q");
+            }
+        }
+
+        public String build() {
+            return builder.length() == 0 ? null : builder.toString();
+        }
+
         public ArgsBuilder nonDefaultProp(String key, boolean value, boolean defaultValue) {
             if (defaultValue != value) {
                 prop(key, String.valueOf(value));
             }
+            return this;
+        }
+
+        public ArgsBuilder opt(String opt) {
+            if (builder.length() != 0) {
+                builder.append(' ');
+            }
+            // FIXME: we should check and eventually quote and/or escape the the
+            // whole param
+            builder.append(opt);
             return this;
         }
 
@@ -57,20 +79,16 @@ public class SrcdepsInstaller {
             builder.append("-D").append(key).append('=').append(value);
             return this;
         }
-
-        public String build() {
-            return builder.toString();
-        }
     }
 
-    private final Logger logger;
+    private final ArtifactHandlerManager artifactHandlerManager;
 
     private final SrcdepsConfiguration configuration;
-    private final Map<Dependency, ScmVersion> revisions;
-    private final MavenSession session;
+    private final Logger logger;
     private final MavenExecutor mavenExecutor;
     private final ReleaseEnvironment releaseEnvironment;
-    private final ArtifactHandlerManager artifactHandlerManager;
+    private final Map<Dependency, ScmVersion> revisions;
+    private final MavenSession session;
 
     public SrcdepsInstaller(MavenSession session, Logger logger, ArtifactHandlerManager artifactHandlerManager,
             SrcdepsConfiguration configuration, Map<Dependency, ScmVersion> revisions) {
@@ -82,7 +100,7 @@ public class SrcdepsInstaller {
         this.revisions = revisions;
         try {
             this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
-            logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor +"]");
+            logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor + "]");
         } catch (ComponentLookupException e) {
             throw new RuntimeException(e);
         }
@@ -95,14 +113,16 @@ public class SrcdepsInstaller {
         logger.info("srcdeps-maven-plugin is setting version [" + depBuild.getId() + "] version ["
                 + depBuild.getVersion() + "] from [" + depBuild.getUrl() + "]");
 
+        final String versionsArgs = new ArgsBuilder(configuration).prop("newVersion", depBuild.getVersion())
+                .prop("generateBackupPoms", "false").build();
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "versions:set", releaseEnvironment, false,
-                "-DnewVersion=" + depBuild.getVersion() + " -DgenerateBackupPoms=false", "pom.xml",
-                new ReleaseResult());
+                versionsArgs, "pom.xml", new ReleaseResult());
 
         logger.info("srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion()
                 + "] from [" + depBuild.getUrl() + "]");
-        mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false, null,
-                "pom.xml", new ReleaseResult());
+        final String buildArgs = new ArgsBuilder(configuration).build();
+        mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false,
+                buildArgs, "pom.xml", new ReleaseResult());
     }
 
     protected void checkout(DependencyBuild depBuild) throws MavenExecutorException {
@@ -117,7 +137,7 @@ public class SrcdepsInstaller {
 
         final ScmVersion scmVersion = depBuild.getScmVersion();
 
-        final String args = new ArgsBuilder().prop("checkoutDirectory", checkoutDir.getAbsolutePath())
+        final String args = new ArgsBuilder(configuration).prop("checkoutDirectory", checkoutDir.getAbsolutePath())
                 .prop("connectionUrl", depBuild.getUrl()).prop("scmVersionType", scmVersion.getVersionType())
                 .prop("scmVersion", scmVersion.getVersion()).nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
                 .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
@@ -142,7 +162,7 @@ public class SrcdepsInstaller {
     }
 
     public void install() {
-        logger.info("About to build srcdeps with " + configuration);
+        logger.debug("About to build srcdeps with " + configuration);
         Map<String, DependencyBuild> depBuilds = new HashMap<String, DependencyBuild>(revisions.size());
 
         ArtifactRepository localRepo = session.getLocalRepository();

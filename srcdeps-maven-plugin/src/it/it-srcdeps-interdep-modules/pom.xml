@@ -54,6 +54,7 @@
         <version>@project.version@</version>
         <extensions>true</extensions>
         <configuration>
+          <quiet>true</quiet>
           <repositories>
             <repository>
               <id>org.l2x6.maven.srcdeps.itest</id>

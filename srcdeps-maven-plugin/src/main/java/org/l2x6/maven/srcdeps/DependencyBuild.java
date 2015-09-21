@@ -17,21 +17,22 @@
 package org.l2x6.maven.srcdeps;
 
 import java.io.File;
+import java.util.Collection;
 
 public class DependencyBuild {
     private final String id;
+    private final boolean mavenTestSkip;
     private final ScmVersion scmVersion;
-    private final String url;
+    private final boolean skipTests;
+    private final Collection<String> urls;
     private final String version;
     private final File workingDirectory;
-    private final boolean mavenTestSkip;
-    private final boolean skipTests;
 
-    public DependencyBuild(File sourcesDirectory, String id, String url, String version, ScmVersion scmVersion,
-            boolean skipTests, boolean mavenTestSkip) {
+    public DependencyBuild(File sourcesDirectory, String id, Collection<String> urls, String version,
+            ScmVersion scmVersion, boolean skipTests, boolean mavenTestSkip) {
         super();
         this.id = id;
-        this.url = url;
+        this.urls = urls;
         this.scmVersion = scmVersion;
         this.version = version;
         this.skipTests = skipTests;
@@ -48,8 +49,8 @@ public class DependencyBuild {
         return scmVersion;
     }
 
-    public String getUrl() {
-        return url;
+    public Collection<String> getUrls() {
+        return urls;
     }
 
     public String getVersion() {

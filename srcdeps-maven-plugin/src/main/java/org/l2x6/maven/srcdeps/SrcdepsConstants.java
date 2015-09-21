@@ -18,7 +18,7 @@ package org.l2x6.maven.srcdeps;
 
 public class SrcdepsConstants {
     public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
+    public static final char SRC_VERSION_DELIMITER = '-';
     public static final String SRC_VERSION_INFIX = "-SRC-";
     public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
-    public static final char SRC_VERSION_DELIMITER = '-';
 }

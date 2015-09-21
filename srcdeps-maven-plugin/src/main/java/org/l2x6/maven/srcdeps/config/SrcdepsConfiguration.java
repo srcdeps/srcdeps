@@ -65,13 +65,14 @@ public class SrcdepsConfiguration {
                 }
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("srcdeps-maven-plugin srcdeps.forwardProperties was null");
+                    logger.debug("srcdeps-maven-plugin srcdeps.forwardProperties was null, using defaults");
                 }
                 for (Element elem : Element.values()) {
                     if (elem.forwardedByDefault) {
                         forwardProperties.add(elem.toSrcDepsProperty());
                     }
                 }
+                forwardProperties.add(Element.url.toSrcDepsProperty() + ".*");
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("srcdeps-maven-plugin srcdeps.forwardProperties in effect: " + forwardProperties);
@@ -124,7 +125,7 @@ public class SrcdepsConfiguration {
             if (reposElem != null) {
                 Xpp3Dom[] reposElems = reposElem.getChildren(Element.repository.name());
                 for (Xpp3Dom repoElem : reposElems) {
-                    repos.add(Repository.load(repoElem, skipTests, mavenTestSkip));
+                    repos.add(Repository.load(repoElem, skipTests, mavenTestSkip, evaluator, logger));
                 }
             }
 

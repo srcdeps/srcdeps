@@ -17,16 +17,41 @@
 package org.l2x6.maven.srcdeps.config;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
 import org.l2x6.maven.srcdeps.util.Mapper;
 import org.l2x6.maven.srcdeps.util.Optional;
+import org.l2x6.maven.srcdeps.util.PropsEvaluator;
 import org.l2x6.maven.srcdeps.util.Supplier;
 
 public class Repository {
-    public static Repository load(Xpp3Dom repoElem, boolean skipTestsDefault, boolean mavenTestSkipDefault) {
+    private static Collection<String> findUrls(String repoId, String defaultUrl, PropsEvaluator evaluator,
+            Logger logger) {
+        Collection<String> result = new LinkedHashSet<String>();
+        result.add(defaultUrl);
+        for (int i = 1; i < Integer.MAX_VALUE; i++) {
+            String urlProp = Element.url.toSrcDepsProperty() + "." + i + "." + repoId;
+            Optional<String> opt = evaluator.stringOptional("${" + urlProp + "}");
+            if (opt.isPresent()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("srcdeps-maven-plugin adding URL [" + urlProp + "] : " + opt.value());
+                }
+                result.add(opt.value());
+            } else {
+                break;
+            }
+        }
+        return result;
+    }
+
+    public static Repository load(Xpp3Dom repoElem, boolean skipTestsDefault, boolean mavenTestSkipDefault,
+            PropsEvaluator evaluator, Logger logger) {
         List<String> selectors = new ArrayList<String>();
         Xpp3Dom selectorsElem = repoElem.getChild(Element.selectors.name());
         if (selectorsElem != null) {
@@ -43,21 +68,23 @@ public class Repository {
                 .map(Mapper.NODE_VALUE).map(Mapper.TO_BOOLEAN)
                 .orElseGet(new Supplier.Constant<Boolean>(Boolean.valueOf(mavenTestSkipDefault))).value();
 
-        return new Repository(repoElem.getChild(Element.id.name()).getValue(), selectors,
-                repoElem.getChild(Element.url.name()).getValue(), skipTests, mavenTestSkip);
+        String repoId = repoElem.getChild(Element.id.name()).getValue();
+        Collection<String> urls = findUrls(repoId, repoElem.getChild(Element.url.name()).getValue(), evaluator, logger);
+        return new Repository(repoId, selectors, Collections.unmodifiableCollection(urls), skipTests, mavenTestSkip);
     }
 
     private final String id;
     private final boolean mavenTestSkip;
     private final List<String> selectors;
     private final boolean skipTests;
-    private final String url;
+    private final Collection<String> urls;
 
-    public Repository(String id, List<String> selectors, String url, boolean skipTests, boolean mavenTestSkip) {
+    private Repository(String id, List<String> selectors, Collection<String> urls, boolean skipTests,
+            boolean mavenTestSkip) {
         super();
         this.id = id;
         this.selectors = selectors;
-        this.url = url;
+        this.urls = urls;
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
     }
@@ -85,12 +112,16 @@ public class Repository {
             return false;
         if (skipTests != other.skipTests)
             return false;
-        if (url == null) {
-            if (other.url != null)
+        if (urls == null) {
+            if (other.urls != null)
                 return false;
-        } else if (!url.equals(other.url))
+        } else if (!urls.equals(other.urls))
             return false;
         return true;
+    }
+
+    public String getDefaultUrl() {
+        return urls.iterator().next();
     }
 
     public String getId() {
@@ -101,8 +132,8 @@ public class Repository {
         return selectors;
     }
 
-    public String getUrl() {
-        return url;
+    public Collection<String> getUrls() {
+        return urls;
     }
 
     @Override
@@ -113,7 +144,7 @@ public class Repository {
         result = prime * result + (mavenTestSkip ? 1231 : 1237);
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
-        result = prime * result + ((url == null) ? 0 : url.hashCode());
+        result = prime * result + ((urls == null) ? 0 : urls.hashCode());
         return result;
     }
 
@@ -127,7 +158,7 @@ public class Repository {
 
     @Override
     public String toString() {
-        return "Repository [id=" + id + ", selectors=" + selectors + ", url=" + url + ", skipTests=" + skipTests
-                + ", mavenTestSkip=" + mavenTestSkip + "]";
+        return "Repository [id=" + id + ", mavenTestSkip=" + mavenTestSkip + ", selectors=" + selectors + ", skipTests="
+                + skipTests + ", urls=" + urls + "]";
     }
 }

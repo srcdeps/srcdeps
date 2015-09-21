@@ -17,8 +17,11 @@
 package org.l2x6.maven.srcdeps;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -47,12 +50,15 @@ public class SrcdepsInstaller {
         private final SrcdepsConfiguration configuration;
         private final PropsEvaluator evaluator;
         private final Logger logger;
+        private final MavenSession session;
 
-        public ArgsBuilder(SrcdepsConfiguration configuration, PropsEvaluator evaluator, Logger logger) {
+        public ArgsBuilder(SrcdepsConfiguration configuration, MavenSession session, PropsEvaluator evaluator,
+                Logger logger) {
             super();
             this.configuration = configuration;
             this.evaluator = evaluator;
             this.logger = logger;
+            this.session = session;
             if (configuration.isQuiet()) {
                 opt("-q");
             }
@@ -67,7 +73,25 @@ public class SrcdepsInstaller {
                     .orElseGet(Supplier.Constant.EMPTY_STRING).value();
             prop(Element.forwardProperties.toSrcDepsProperty(), rawFwdProps);
 
+            Set<String> useProps = new LinkedHashSet<String>(configuration.getForwardProperties());
             for (String prop : configuration.getForwardProperties()) {
+                if (prop.endsWith("*")) {
+                    /* prefix */
+                    String prefix = prop.substring(prop.length() - 1);
+                    for (Object key : session.getUserProperties().keySet()) {
+                        if (key instanceof String && ((String) key).startsWith(prefix)) {
+                            useProps.add((String) key);
+                        }
+                    }
+                    for (Object key : session.getSystemProperties().keySet()) {
+                        if (key instanceof String && ((String) key).startsWith(prefix)) {
+                            useProps.add((String) key);
+                        }
+                    }
+                }
+            }
+
+            for (String prop : useProps) {
                 String expression = "${" + prop + "}";
                 Optional<String> value = evaluator.stringOptional(expression);
                 if (value.isPresent()) {
@@ -153,43 +177,64 @@ public class SrcdepsInstaller {
 
     protected void build(DependencyBuild depBuild) throws MavenExecutorException {
         logger.info("srcdeps-maven-plugin is setting version [" + depBuild.getId() + "] version ["
-                + depBuild.getVersion() + "] from [" + depBuild.getUrl() + "]");
+                + depBuild.getVersion() + "]");
 
-        final String versionsArgs = new ArgsBuilder(configuration, evaluator, logger)
+        final String versionsArgs = new ArgsBuilder(configuration, session, evaluator, logger)
                 .prop("newVersion", depBuild.getVersion()).prop("generateBackupPoms", "false").build();
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "versions:set", releaseEnvironment, false,
                 versionsArgs, "pom.xml", new ReleaseResult());
 
-        logger.info("srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion()
-                + "] from [" + depBuild.getUrl() + "]");
-        final String buildArgs = new ArgsBuilder(configuration, evaluator, logger).buildOptions().build();
+        logger.info(
+                "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
+        final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger).buildOptions().build();
         mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false,
                 buildArgs, "pom.xml", new ReleaseResult());
     }
 
     protected void checkout(DependencyBuild depBuild) throws MavenExecutorException {
 
-        logger.info("srcdeps-maven-plugin is checking out [" + depBuild.getId() + "] version [" + depBuild.getVersion()
-                + "] from [" + depBuild.getUrl() + "]");
+        Collection<String> urls = depBuild.getUrls();
+        int i = 0;
+        MavenExecutorException executorException = null;
+        for (String url : urls) {
+            executorException = null;
+            logger.info("srcdeps-maven-plugin is checking out [" + depBuild.getId() + "] version ["
+                    + depBuild.getVersion() + "] from URL [" + i + "] [" + url + "]");
+            i++;
 
-        File checkoutDir = depBuild.getWorkingDirectory();
-        if (!checkoutDir.exists()) {
-            checkoutDir.mkdirs();
+            File checkoutDir = depBuild.getWorkingDirectory();
+            if (!checkoutDir.exists()) {
+                checkoutDir.mkdirs();
+            }
+
+            final ScmVersion scmVersion = depBuild.getScmVersion();
+
+            final String args = new ArgsBuilder(configuration, session, evaluator, logger)
+                    .prop("checkoutDirectory", checkoutDir.getAbsolutePath()).prop("connectionUrl", url)
+                    .prop("scmVersionType", scmVersion.getVersionType()).prop("scmVersion", scmVersion.getVersion())
+                    .nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
+                    .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
+
+            // logger.info("Using args ["+ args +"]");
+
+            try {
+                mavenExecutor.executeGoals(
+                        new File(session.getExecutionRootDirectory()), "org.apache.maven.plugins:maven-scm-plugin:"
+                                + configuration.getScmPluginVersion() + ":checkout",
+                        releaseEnvironment, false, args, "pom.xml", new ReleaseResult());
+
+                /* break the loop on first success */
+                return;
+            } catch (MavenExecutorException e) {
+                logger.info("srcdeps-maven-plugin could not check out [" + depBuild.getId() + "] version ["
+                        + depBuild.getVersion() + "] from URL [" + i + "] [" + url + "] : " + e.getMessage());
+                executorException = e;
+            }
         }
 
-        final ScmVersion scmVersion = depBuild.getScmVersion();
-
-        final String args = new ArgsBuilder(configuration, evaluator, logger)
-                .prop("checkoutDirectory", checkoutDir.getAbsolutePath()).prop("connectionUrl", depBuild.getUrl())
-                .prop("scmVersionType", scmVersion.getVersionType()).prop("scmVersion", scmVersion.getVersion())
-                .nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
-                .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
-
-        // logger.info("Using args ["+ args +"]");
-
-        mavenExecutor.executeGoals(new File(session.getExecutionRootDirectory()),
-                "org.apache.maven.plugins:maven-scm-plugin:" + configuration.getScmPluginVersion() + ":checkout",
-                releaseEnvironment, false, args, "pom.xml", new ReleaseResult());
+        if (executorException != null) {
+            throw executorException;
+        }
 
     }
 
@@ -236,7 +281,7 @@ public class SrcdepsInstaller {
                          */
                     }
                 } else {
-                    String url = repo.getUrl();
+                    String url = repo.getDefaultUrl();
                     DependencyBuild depBuild = depBuilds.get(url);
                     if (depBuild != null) {
                         ScmVersion foundScmVersion = depBuild.getScmVersion();
@@ -246,8 +291,9 @@ public class SrcdepsInstaller {
                         }
                     } else {
                         /* checkout == null */
-                        depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(), url,
-                                dep.getVersion(), scmVersion, repo.isSkipTests(), repo.isMavenTestSkip());
+                        depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(),
+                                repo.getUrls(), dep.getVersion(), scmVersion, repo.isSkipTests(),
+                                repo.isMavenTestSkip());
                         depBuilds.put(url, depBuild);
                     }
                 }

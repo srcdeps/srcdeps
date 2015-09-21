@@ -165,7 +165,7 @@ public class SrcdepsInstaller {
         this.configuration = configuration;
         this.revisions = revisions;
         try {
-            this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
+            this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "invoker");
             logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor + "]");
         } catch (ComponentLookupException e) {
             throw new RuntimeException(e);

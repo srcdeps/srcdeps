@@ -124,7 +124,7 @@
         <version.maven-failsafe-plugin>2.18.1</version.maven-failsafe-plugin>
         <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
         <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
-        <version.maven-invoker-plugin>1.7</version.maven-invoker-plugin>
+        <version.maven-invoker-plugin>2.0.0</version.maven-invoker-plugin>
         <version.maven-jar-plugin>2.5</version.maven-jar-plugin>
         <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
         <version.maven-plugin-plugin>3.2</version.maven-plugin-plugin>

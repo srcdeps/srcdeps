@@ -3,6 +3,8 @@
 A Maven plugin to build dependencies from their sources on the fly - a way to make a multi-component Java Project
 become more continuous, while staying with stock Maven and keeping components in separate git repositories.
 
+An intro presentation: http://ppalaga.github.io/presentations/150929-srcdeps-maven-plugin/150929-srcdeps-maven-plugin.html
+
 ifdef::env-github[]
 [link=https://travis-ci.org/l2x6/srcdeps-maven-plugin]
 image:https://travis-ci.org/l2x6/srcdeps-maven-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/l2x6/srcdeps-maven-plugin"]

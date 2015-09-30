@@ -130,7 +130,9 @@ public class SrcdepsConfiguration {
             }
 
             return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
-                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skip, skipTests, mavenTestSkip, quiet,
+                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion,
+                    skipTests, mavenTestSkip,
+                    skip, quiet,
                     forwardProperties);
         }
 
@@ -186,8 +188,10 @@ public class SrcdepsConfiguration {
     private final File sourcesDirectory;
 
     private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
-            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip,
-            boolean skip, boolean quiet, Set<String> forwardProperties) {
+            File mavenHome, File javaHome, String scmPluginVersion,
+            boolean skipTests, boolean mavenTestSkip,
+            boolean skip, boolean quiet,
+            Set<String> forwardProperties) {
         super();
         this.repositories = repositories;
         this.failOnMissingRepository = failOnMissingRepository;

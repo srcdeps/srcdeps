@@ -154,6 +154,8 @@ public class SrcdepsInstaller {
     private final Map<Dependency, ScmVersion> revisions;
     private final MavenSession session;
 
+    private final boolean isWindows;
+
     public SrcdepsInstaller(MavenSession session, PropsEvaluator evaluator, Logger logger,
             ArtifactHandlerManager artifactHandlerManager, SrcdepsConfiguration configuration,
             Map<Dependency, ScmVersion> revisions) {
@@ -164,9 +166,19 @@ public class SrcdepsInstaller {
         this.artifactHandlerManager = artifactHandlerManager;
         this.configuration = configuration;
         this.revisions = revisions;
+        final String os = System.getProperty("os.name").toLowerCase();
+        this.isWindows = os.startsWith("windows");
         try {
-            this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "invoker");
-            logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor + "]");
+            if (isWindows) {
+                /*
+                 * this one does not support -q so let's use it only on Windows
+                 * where ForkedMavenExecutor does not work
+                 */
+                this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "invoker");
+            } else {
+                this.mavenExecutor = (MavenExecutor) session.lookup(MavenExecutor.ROLE, "forked-path");
+            }
+            logger.debug("srcdeps-maven-plugin looked up a mavenExecutor [" + mavenExecutor.getClass() + "]");
         } catch (ComponentLookupException e) {
             throw new RuntimeException(e);
         }
@@ -176,19 +188,17 @@ public class SrcdepsInstaller {
     }
 
     protected void build(DependencyBuild depBuild) throws MavenExecutorException {
-        logger.info("srcdeps-maven-plugin is setting version [" + depBuild.getId() + "] version ["
-                + depBuild.getVersion() + "]");
+        logger.info(
+                "srcdeps-maven-plugin is setting [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
 
         final String versionsArgs = new ArgsBuilder(configuration, session, evaluator, logger)
                 .prop("newVersion", depBuild.getVersion()).prop("generateBackupPoms", "false").build();
-        mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "versions:set", releaseEnvironment, false,
-                versionsArgs, "pom.xml", new ReleaseResult());
+        execute(depBuild.getWorkingDirectory(), "versions:set", versionsArgs);
 
         logger.info(
                 "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
         final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger).buildOptions().build();
-        mavenExecutor.executeGoals(depBuild.getWorkingDirectory(), "clean install", releaseEnvironment, false,
-                buildArgs, "pom.xml", new ReleaseResult());
+        execute(depBuild.getWorkingDirectory(), "clean install", buildArgs);
     }
 
     protected void checkout(DependencyBuild depBuild) throws MavenExecutorException {
@@ -218,10 +228,8 @@ public class SrcdepsInstaller {
             // logger.info("Using args ["+ args +"]");
 
             try {
-                mavenExecutor.executeGoals(
-                        new File(session.getExecutionRootDirectory()), "org.apache.maven.plugins:maven-scm-plugin:"
-                                + configuration.getScmPluginVersion() + ":checkout",
-                        releaseEnvironment, false, args, "pom.xml", new ReleaseResult());
+                execute(new File(session.getExecutionRootDirectory()), "org.apache.maven.plugins:maven-scm-plugin:"
+                        + configuration.getScmPluginVersion() + ":checkout", args);
 
                 /* break the loop on first success */
                 return;
@@ -236,6 +244,15 @@ public class SrcdepsInstaller {
             throw executorException;
         }
 
+    }
+
+    private void execute(File workingDirectory, String goals, String args) throws MavenExecutorException {
+        if (isWindows) {
+            logger.info("srcdeps-maven-plugin invoking cd " + workingDirectory.getAbsolutePath() + "; mvn " + goals
+                    + " " + args);
+        }
+        mavenExecutor.executeGoals(workingDirectory, goals, releaseEnvironment, false, args, "pom.xml",
+                new ReleaseResult());
     }
 
     protected Repository findRepository(Dependency dep) {

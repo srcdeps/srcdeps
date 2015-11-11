@@ -85,7 +85,7 @@ public class SrcdepsConfiguration {
             final boolean failOnMissingRepository = Optional
                     .ofNullable(dom.getChild(Element.failOnMissingRepository.name())).map(Mapper.NODE_VALUE)
                     .orElseGet(evaluator.stringSupplier(Element.failOnMissingRepository)).map(Mapper.TO_BOOLEAN)
-                    .orElseGet(Supplier.Constant.FALSE).value();
+                    .orElseGet(Supplier.Constant.TRUE).value();
 
             final File sourcesDirectory = Optional.ofNullable(dom.getChild(Element.sourcesDirectory.name()))
                     .map(Mapper.NODE_VALUE).orElseGet(evaluator.stringSupplier(Element.sourcesDirectory))

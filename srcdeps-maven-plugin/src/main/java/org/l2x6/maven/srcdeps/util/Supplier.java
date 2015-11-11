@@ -20,6 +20,7 @@ public interface Supplier<T> {
     public static class Constant<T> implements Supplier<T> {
         public static final Supplier<String> EMPTY_STRING = new Supplier.Constant<String>("");
         public static final Supplier<Boolean> FALSE = new Supplier.Constant<Boolean>(Boolean.FALSE);
+        public static final Supplier<Boolean> TRUE = new Supplier.Constant<Boolean>(Boolean.TRUE);
         private final T value;
 
         public Constant(T value) {

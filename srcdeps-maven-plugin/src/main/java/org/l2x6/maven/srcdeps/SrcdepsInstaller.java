@@ -296,6 +296,7 @@ public class SrcdepsInstaller {
                          * ignore and assume that the user knows what he is
                          * doing
                          */
+                        logger.warn("srcdeps-maven-plugin has not found a SCM repository for dependency ["+ dep +"]");
                     }
                 } else {
                     String url = repo.getDefaultUrl();
@@ -307,7 +308,7 @@ public class SrcdepsInstaller {
                                     + "': '" + foundScmVersion + "' and '" + scmVersion + "' of " + dep);
                         }
                     } else {
-                        /* checkout == null */
+                        /* depBuild == null */
                         depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(),
                                 repo.getUrls(), dep.getVersion(), scmVersion, repo.isSkipTests(),
                                 repo.isMavenTestSkip());

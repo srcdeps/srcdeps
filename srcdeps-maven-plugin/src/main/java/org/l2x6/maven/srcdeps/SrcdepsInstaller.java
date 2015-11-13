@@ -17,6 +17,7 @@
 package org.l2x6.maven.srcdeps;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -37,6 +38,8 @@ import org.apache.maven.shared.release.exec.MavenExecutor;
 import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.FileUtils;
+import org.l2x6.maven.srcdeps.ScmVersion.ScmVersionElement;
 import org.l2x6.maven.srcdeps.config.Repository;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration.Element;
@@ -239,33 +242,46 @@ public class SrcdepsInstaller {
         Collection<String> urls = depBuild.getUrls();
         int i = 0;
         MavenExecutorException executorException = null;
+        File checkoutDir = depBuild.getWorkingDirectory();
+        if (checkoutDir.exists()) {
+            try {
+                logger.debug("srcdeps-maven-plugin is about to delete [" + checkoutDir.getAbsolutePath() + "]");
+                FileUtils.deleteDirectory(checkoutDir);
+            } catch (IOException e) {
+                throw new MavenExecutorException(
+                        "srcdeps-maven-plugin could not delete [" + checkoutDir.getAbsolutePath() + "]", e);
+            }
+        }
+        if (checkoutDir.exists()) {
+            throw new RuntimeException("srcdeps-maven-plugin could not assert that [" + checkoutDir.getAbsolutePath()
+                    + "] does not exist");
+        }
+        if (!checkoutDir.exists()) {
+            checkoutDir.mkdirs();
+        }
         for (String url : urls) {
             executorException = null;
             logger.info("srcdeps-maven-plugin is checking out [" + depBuild.getId() + "] version ["
                     + depBuild.getVersion() + "] from URL [" + i + "] [" + url + "]");
             i++;
 
-            File checkoutDir = depBuild.getWorkingDirectory();
-            if (!checkoutDir.exists()) {
-                checkoutDir.mkdirs();
-            }
-
             final ScmVersion scmVersion = depBuild.getScmVersion();
-
-            final String args = new ArgsBuilder(configuration, session, evaluator, logger)
-                    .property("checkoutDirectory", checkoutDir.getAbsolutePath()).property("connectionUrl", url)
-                    .property("scmVersionType", scmVersion.getVersionType())
-                    .property("scmVersion", scmVersion.getVersion())
-                    .nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
-                    .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
 
             // logger.info("Using args ["+ args +"]");
 
             try {
-                execute(new File(session.getExecutionRootDirectory()), "org.apache.maven.plugins:maven-scm-plugin:"
-                        + configuration.getScmPluginVersion() + ":checkout", args);
+                for (ScmVersionElement element : scmVersion.getElements()) {
+                    final String args = new ArgsBuilder(configuration, session, evaluator, logger)
+                            .property("checkoutDirectory", checkoutDir.getAbsolutePath()).property("connectionUrl", url)
+                            .property("scmVersionType", element.getVersionType())
+                            .property("scmVersion", element.getVersion())
+                            .nonDefaultProp("skipTests", depBuild.isSkipTests(), false)
+                            .nonDefaultProp("maven.test.skip", depBuild.isMavenTestSkip(), false).build();
+                    execute(new File(session.getExecutionRootDirectory()), "org.apache.maven.plugins:maven-scm-plugin:"
+                            + configuration.getScmPluginVersion() + ":checkout", args);
+                }
 
-                /* break the loop on first success */
+                /* break the url loop on first success */
                 return;
             } catch (MavenExecutorException e) {
                 logger.info("srcdeps-maven-plugin could not check out [" + depBuild.getId() + "] version ["

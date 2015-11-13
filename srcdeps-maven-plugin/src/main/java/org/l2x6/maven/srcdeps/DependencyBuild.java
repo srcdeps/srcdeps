@@ -18,6 +18,8 @@ package org.l2x6.maven.srcdeps;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class DependencyBuild {
     private final String id;
@@ -27,9 +29,13 @@ public class DependencyBuild {
     private final Collection<String> urls;
     private final String version;
     private final File workingDirectory;
+    private final List<String> goals;
+    private final List<String> profiles;
+    private final Map<String, String> properties;
 
     public DependencyBuild(File sourcesDirectory, String id, Collection<String> urls, String version,
-            ScmVersion scmVersion, boolean skipTests, boolean mavenTestSkip) {
+            ScmVersion scmVersion, boolean skipTests, boolean mavenTestSkip, List<String> goals, List<String> profiles,
+            Map<String, String> properties) {
         super();
         this.id = id;
         this.urls = urls;
@@ -37,6 +43,9 @@ public class DependencyBuild {
         this.version = version;
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
+        this.goals = goals;
+        this.profiles = profiles;
+        this.properties = properties;
 
         this.workingDirectory = new File(sourcesDirectory, id);
     }
@@ -67,6 +76,29 @@ public class DependencyBuild {
 
     public boolean isSkipTests() {
         return skipTests;
+    }
+
+    public List<String> getGoals() {
+        return goals;
+    }
+
+    public String getGoalsString() {
+        StringBuilder sb = new StringBuilder();
+        for (String goal : goals) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(goal);
+        }
+        return sb.toString();
+    }
+
+    public List<String> getProfiles() {
+        return profiles;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
 }

@@ -17,14 +17,25 @@
 package org.l2x6.maven.srcdeps.util;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 public interface Mapper<T, R> {
     Mapper<Xpp3Dom, String> NODE_VALUE = new Mapper<Xpp3Dom, String>() {
         @Override
         public String map(Xpp3Dom node) {
             return node != null ? node.getValue() : null;
+        }
+    };
+    Mapper<String, List<String>> TO_STRING_LIST = new Mapper<String, List<String>>() {
+        @SuppressWarnings("unchecked")
+        @Override
+        public List<String> map(String value) {
+            return value == null ? null : Collections.unmodifiableList(Arrays.asList(value.split(" ,\t\n\r")));
         }
     };
     Mapper<String, Boolean> TO_BOOLEAN = new Mapper<String, Boolean>() {

@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.maven.srcdeps;
+import org.codehaus.plexus.util.FileUtils
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+assert testPom.isFile()
 
-public class SrcdepsConstants {
-    public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
-    public static final char SRC_VERSION_DELIMITER = '-';
-    public static final String SRC_VERSION_INFIX = "-SRC-";
-    public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
-    public static final List<String> DEFAULT_GOALS = Collections.unmodifiableList(Arrays.asList("clean", "install"));
-}
+File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact-api/0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9/srcdeps-test-artifact-api-0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9.jar")
+assert testJar.isFile()
+
+File logFile = new File(basedir, "build.log")
+assert logFile.isFile()
+String logContent = FileUtils.fileRead(logFile, "UTF-8");
+
+assert logContent =~ /\[echo\] Hello \[random name KMYTJDb9\]!/

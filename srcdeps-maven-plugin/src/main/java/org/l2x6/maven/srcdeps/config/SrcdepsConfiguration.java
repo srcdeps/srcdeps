@@ -154,7 +154,10 @@ public class SrcdepsConfiguration {
         skip(true), //
         skipTests(true), //
         sourcesDirectory(true), //
-        url;
+        url, //
+        properties, //
+        goals, //
+        profiles;
 
         private final boolean forwardedByDefault;
 

@@ -18,6 +18,8 @@ package org.l2x6.maven.srcdeps;
 
 public class ScmVersion {
 
+    public enum WellKnownType { branch, tag, revision };
+
     public static ScmVersion fromSrcdepsVersionString(String version) {
         int pos = version.indexOf(SrcdepsConstants.SRC_VERSION_INFIX);
         if (pos >= 0) {
@@ -48,38 +50,10 @@ public class ScmVersion {
      */
     private final String versionType;
 
-    /**
-     * @param versionType
-     *            see {@link #version}
-     * @param version
-     *            see {@link #versionType}
-     */
     public ScmVersion(String versionType, String version) {
         super();
         this.versionType = versionType;
         this.version = version;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ScmVersion other = (ScmVersion) obj;
-        if (version == null) {
-            if (other.version != null)
-                return false;
-        } else if (!version.equals(other.version))
-            return false;
-        if (versionType == null) {
-            if (other.versionType != null)
-                return false;
-        } else if (!versionType.equals(other.versionType))
-            return false;
-        return true;
     }
 
     /**
@@ -107,6 +81,11 @@ public class ScmVersion {
 
     @Override
     public String toString() {
-        return "ScmVersion [version=" + version + ", versionType=" + versionType + "]";
+        return "ScmVersionElement [version=" + version + ", versionType=" + versionType + "]";
     }
+
+    public WellKnownType getWellKnownType() {
+        return WellKnownType.valueOf(versionType);
+    }
+
 }

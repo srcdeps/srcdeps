@@ -14,17 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.maven.srcdeps;
+package org.l2x6.maven.srcdeps.scm;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+public class ScmException extends Exception {
 
-public class SrcdepsConstants {
-    public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
-    public static final char SRC_VERSION_DELIMITER = '-';
-    public static final char SRC_VERSION_ELEMENT_DELIMITER = ';';
-    public static final String SRC_VERSION_INFIX = "-SRC-";
-    public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
-    public static final List<String> DEFAULT_GOALS = Collections.unmodifiableList(Arrays.asList("clean", "install"));
+    /**  */
+    private static final long serialVersionUID = 6440562328717677303L;
+
+    public ScmException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ScmException(String message) {
+        super(message);
+    }
+
+    public ScmException(Throwable cause) {
+        super(cause);
+    }
+
 }

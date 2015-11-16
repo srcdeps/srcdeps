@@ -59,20 +59,9 @@ public abstract class Scm {
         int i = 0;
         ScmException executorException = null;
         File checkoutDir = depBuild.getWorkingDirectory();
-        if (checkoutDir.exists()) {
-            try {
-                logger.debug("srcdeps-maven-plugin is about to delete [" + checkoutDir.getAbsolutePath() + "]");
-                FileUtils.deleteDirectory(checkoutDir);
-            } catch (IOException e) {
-                throw new ScmException("srcdeps-maven-plugin could not delete [" + checkoutDir.getAbsolutePath() + "]",
-                        e);
-            }
-        }
-        if (checkoutDir.exists()) {
-            throw new RuntimeException("srcdeps-maven-plugin could not assert that [" + checkoutDir.getAbsolutePath()
-                    + "] does not exist");
-        }
-        if (!checkoutDir.exists()) {
+
+        removeDir(checkoutDir);
+        if (!checkoutDir.getParentFile().exists()) {
             checkoutDir.mkdirs();
         }
         for (String url : urls) {
@@ -89,6 +78,7 @@ public abstract class Scm {
                 logger.info("srcdeps-maven-plugin could not check out [" + depBuild.getId() + "] version ["
                         + depBuild.getVersion() + "] from URL [" + i + "] [" + url + "] : " + e.getMessage());
                 executorException = e;
+                removeDir(checkoutDir);
             }
 
         }
@@ -97,6 +87,22 @@ public abstract class Scm {
             throw executorException;
         }
 
+    }
+
+    protected void removeDir(File checkoutDir) throws ScmException {
+        if (checkoutDir.exists()) {
+            try {
+                logger.debug("srcdeps-maven-plugin is about to delete [" + checkoutDir.getAbsolutePath() + "]");
+                FileUtils.deleteDirectory(checkoutDir);
+            } catch (IOException e) {
+                throw new ScmException("srcdeps-maven-plugin could not delete [" + checkoutDir.getAbsolutePath() + "]",
+                        e);
+            }
+        }
+        if (checkoutDir.exists()) {
+            throw new ScmException("srcdeps-maven-plugin could not assert that [" + checkoutDir.getAbsolutePath()
+                    + "] does not exist");
+        }
     }
 
     protected abstract void checkout(String url, File checkoutDir, DependencyBuild depBuild, PropsEvaluator evaluator)

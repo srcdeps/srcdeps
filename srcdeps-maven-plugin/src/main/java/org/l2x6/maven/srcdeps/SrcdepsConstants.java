@@ -18,7 +18,9 @@ package org.l2x6.maven.srcdeps;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SrcdepsConstants {
     public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
@@ -27,4 +29,6 @@ public class SrcdepsConstants {
     public static final String SRC_VERSION_INFIX = "-SRC-";
     public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
     public static final List<String> DEFAULT_GOALS = Collections.unmodifiableList(Arrays.asList("clean", "install"));
+    public static final Set<String> DEFAULT_FAIL_WITH_PROFILES = Collections
+            .unmodifiableSet(new LinkedHashSet<String>(Arrays.asList("release")));
 }

@@ -18,7 +18,9 @@ package org.l2x6.maven.srcdeps.util;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
@@ -36,6 +38,14 @@ public interface Mapper<T, R> {
         @Override
         public List<String> map(String value) {
             return value == null ? null : Collections.unmodifiableList(Arrays.asList(value.split(" ,\t\n\r")));
+        }
+    };
+    Mapper<String, Set<String>> TO_STRING_SET = new Mapper<String, Set<String>>() {
+        @SuppressWarnings("unchecked")
+        @Override
+        public Set<String> map(String value) {
+            return value == null ? null
+                    : Collections.unmodifiableSet(new LinkedHashSet<String>(Arrays.asList(value.split(" ,\t\n\r"))));
         }
     };
     Mapper<String, Boolean> TO_BOOLEAN = new Mapper<String, Boolean>() {

@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
@@ -42,9 +43,9 @@ public class SrcdepsInstaller {
     private final SrcdepsConfiguration configuration;
     private final PropsEvaluator evaluator;
     private final Logger logger;
+    private final MojoExecutor mojoExecutor;
     private final Map<Dependency, ScmVersion> revisions;
     private final MavenSession session;
-    private final MojoExecutor mojoExecutor;
 
     public SrcdepsInstaller(MavenSession session, PropsEvaluator evaluator, Logger logger,
             ArtifactHandlerManager artifactHandlerManager, SrcdepsConfiguration configuration,
@@ -59,6 +60,25 @@ public class SrcdepsInstaller {
         this.mojoExecutor = new MojoExecutor(session, logger, configuration);
     }
 
+    private void build(DependencyBuild depBuild) throws MavenExecutorException {
+        logger.info(
+                "srcdeps-maven-plugin is setting [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
+
+        final String versionsArgs = new ArgsBuilder(configuration, session, evaluator, logger)
+                .property("newVersion", depBuild.getVersion()).property("generateBackupPoms", "false").build();
+        mojoExecutor.execute(depBuild.getWorkingDirectory(), "versions:set", versionsArgs);
+
+        logger.info(
+                "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
+        final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger)
+                .profiles(depBuild.getProfiles()) //
+                .buildOptions() //
+                .properties(depBuild.getProperties()) //
+                .build();
+
+        mojoExecutor.execute(depBuild.getWorkingDirectory(), depBuild.getGoalsString(), buildArgs);
+    }
+
     protected Repository findRepository(Dependency dep) {
         for (Repository repository : configuration.getRepositories()) {
             for (String selector : repository.getSelectors()) {
@@ -70,7 +90,7 @@ public class SrcdepsInstaller {
         return null;
     }
 
-    public void install() {
+    public void install() throws MavenExecutionException {
         logger.debug("srcdeps-maven-plugin using configuration " + configuration);
         Map<String, DependencyBuild> depBuilds = new HashMap<String, DependencyBuild>(revisions.size());
 
@@ -136,25 +156,6 @@ public class SrcdepsInstaller {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    private void build(DependencyBuild depBuild) throws MavenExecutorException {
-        logger.info(
-                "srcdeps-maven-plugin is setting [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
-
-        final String versionsArgs = new ArgsBuilder(configuration, session, evaluator, logger)
-                .property("newVersion", depBuild.getVersion()).property("generateBackupPoms", "false").build();
-        mojoExecutor.execute(depBuild.getWorkingDirectory(), "versions:set", versionsArgs);
-
-        logger.info(
-                "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
-        final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger)
-                .profiles(depBuild.getProfiles()) //
-                .buildOptions() //
-                .properties(depBuild.getProperties()) //
-                .build();
-
-        mojoExecutor.execute(depBuild.getWorkingDirectory(), depBuild.getGoalsString(), buildArgs);
     }
 
 }

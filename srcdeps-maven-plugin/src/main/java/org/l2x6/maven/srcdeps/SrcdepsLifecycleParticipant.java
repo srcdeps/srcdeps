@@ -162,11 +162,29 @@ public class SrcdepsLifecycleParticipant extends AbstractMavenLifecycleParticipa
                             @SuppressWarnings("unchecked")
                             Map<Dependency, ScmVersion> revisions = filterSrcdeps(project.getDependencies(),
                                     projectGavs);
-                            new SrcdepsInstaller(session, evaluator, logger, artifactHandlerManager,
-                                    srcdepsConfiguration, revisions).install();
+                            if (!revisions.isEmpty()) {
+                                assertFailWithProfiles(session, srcdepsConfiguration);
+                                new SrcdepsInstaller(session, evaluator, logger, artifactHandlerManager,
+                                        srcdepsConfiguration, revisions).install();
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void assertFailWithProfiles(MavenSession session, SrcdepsConfiguration configuration)
+            throws MavenExecutionException {
+        Set<String> failWithProfiles = configuration.getFailWithProfiles();
+        List<String> activeProfiles = session.getRequest().getActiveProfiles();
+        logger.debug("srcdeps-maven-plugin about to check if any of the active profiles [" + activeProfiles
+                + "] is in failWithProfiles [" + failWithProfiles + "]");
+        for (String profile : activeProfiles) {
+            if (failWithProfiles.contains(profile)) {
+                throw new MavenExecutionException(
+                        "srcdeps-maven-plugin is configured to fail with profile [" + profile + "]. ",
+                        session.getCurrentProject().getFile());
             }
         }
     }

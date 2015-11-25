@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.l2x6.maven.srcdeps.SrcdepsConstants;
 import org.l2x6.maven.srcdeps.util.Mapper;
 import org.l2x6.maven.srcdeps.util.Optional;
 import org.l2x6.maven.srcdeps.util.PropsEvaluator;
@@ -120,6 +121,11 @@ public class SrcdepsConfiguration {
                     .orElseGet(evaluator.stringSupplier(Element.quiet)).map(Mapper.TO_BOOLEAN)
                     .orElseGet(Supplier.Constant.FALSE).value();
 
+            final Set<String> failWithProfiles = Optional.ofNullable(dom.getChild(Element.failWithProfiles.name()))
+                    .map(Mapper.NODE_VALUE).orElseGet(evaluator.stringSupplier(Element.failWithProfiles))
+                    .map(Mapper.TO_STRING_SET)
+                    .orElseGet(new Supplier.Constant<Set<String>>(SrcdepsConstants.DEFAULT_FAIL_WITH_PROFILES)).value();
+
             Xpp3Dom reposElem = dom.getChild(Element.repositories.name());
             List<Repository> repos = new ArrayList<Repository>();
             if (reposElem != null) {
@@ -130,21 +136,23 @@ public class SrcdepsConfiguration {
             }
 
             return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
-                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion,
-                    skipTests, mavenTestSkip,
-                    skip, quiet,
-                    forwardProperties);
+                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip, skip, quiet,
+                    forwardProperties, failWithProfiles);
         }
 
     }
 
     public enum Element {
         failOnMissingRepository(true), //
+        failWithProfiles, //
         forwardProperties, //
+        goals, //
         id, //
         javaHome(true), //
         mavenHome(true), //
         mavenTestSkip(true), //
+        profiles, //
+        properties, //
         quiet(true), //
         repositories, //
         repository, //
@@ -154,10 +162,7 @@ public class SrcdepsConfiguration {
         skip(true), //
         skipTests(true), //
         sourcesDirectory(true), //
-        url, //
-        properties, //
-        goals, //
-        profiles;
+        url;
 
         private final boolean forwardedByDefault;
 
@@ -179,6 +184,7 @@ public class SrcdepsConfiguration {
     }
 
     private final boolean failOnMissingRepository;
+    private final Set<String> failWithProfiles;
     private final Set<String> forwardProperties;
     private final File javaHome;
     private final File mavenHome;
@@ -191,10 +197,8 @@ public class SrcdepsConfiguration {
     private final File sourcesDirectory;
 
     private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
-            File mavenHome, File javaHome, String scmPluginVersion,
-            boolean skipTests, boolean mavenTestSkip,
-            boolean skip, boolean quiet,
-            Set<String> forwardProperties) {
+            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip,
+            boolean skip, boolean quiet, Set<String> forwardProperties, Set<String> failWithProfiles) {
         super();
         this.repositories = repositories;
         this.failOnMissingRepository = failOnMissingRepository;
@@ -207,6 +211,11 @@ public class SrcdepsConfiguration {
         this.mavenTestSkip = mavenTestSkip;
         this.quiet = quiet;
         this.forwardProperties = forwardProperties;
+        this.failWithProfiles = failWithProfiles;
+    }
+
+    public Set<String> getFailWithProfiles() {
+        return failWithProfiles;
     }
 
     public Set<String> getForwardProperties() {

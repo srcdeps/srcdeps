@@ -82,8 +82,8 @@ public class ArgsBuilder {
                 property(prop, value.value());
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("srcdeps-maven-plugin  is not forwarding property " + prop
-                            + " because it has no value");
+                    logger.debug(
+                            "srcdeps-maven-plugin  is not forwarding property " + prop + " because it has no value");
                 }
             }
         }
@@ -115,23 +115,15 @@ public class ArgsBuilder {
         return this;
     }
 
-    public ArgsBuilder profiles(List<String> profiles) {
-        if (profiles != null && !profiles.isEmpty()) {
-            if (builder.length() != 0) {
-                builder.append(' ');
-            }
+    public ArgsBuilder buildArgs(List<String> buildArgs) {
+        if (buildArgs != null && !buildArgs.isEmpty()) {
             // FIXME: we should check and eventually quote and/or escape the
-            // the
             // whole param
-            builder.append("-P");
-            boolean first = true;
-            for (String profile : profiles) {
-                if (first) {
-                    first = false;
-                } else {
-                    builder.append(',');
+            for (String buildArg : buildArgs) {
+                if (builder.length() != 0) {
+                    builder.append(' ');
                 }
-                builder.append(profile);
+                builder.append('\"').append(buildArg).append('\"');
             }
         }
         return this;

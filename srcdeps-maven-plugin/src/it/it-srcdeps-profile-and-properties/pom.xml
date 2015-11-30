@@ -61,10 +61,10 @@
                 <selector>org.l2x6.maven.srcdeps.itest</selector>
               </selectors>
               <url>scm:git:https://github.com/l2x6/srcdeps-test-artifact.git</url>
-              <profiles>srcdeps-test-artifact-api-hello-profile</profiles>
-              <properties>
-                <hello.addressee>random name KMYTJDb9</hello.addressee>
-              </properties>
+              <buildArgs>
+                <buildArg>-Psrcdeps-test-artifact-api-hello-profile</buildArg>
+                <buildArg>-Dhello.addressee=random name KMYTJDb9</buildArg>
+              </buildArgs>
             </repository>
           </repositories>
         </configuration>

@@ -151,8 +151,7 @@ public class SrcdepsConfiguration {
         javaHome(true), //
         mavenHome(true), //
         mavenTestSkip(true), //
-        profiles, //
-        properties, //
+        buildArgs, //
         quiet(true), //
         repositories, //
         repository, //

@@ -19,10 +19,8 @@ package org.l2x6.maven.srcdeps.config;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -64,12 +62,12 @@ public class Repository {
             }
         }
 
-        Map<String, String> properties = new LinkedHashMap<String, String>();
-        Xpp3Dom propertiesElem = repoElem.getChild(Element.properties.name());
-        if (propertiesElem != null) {
-            Xpp3Dom[] propertyElems = propertiesElem.getChildren();
-            for (Xpp3Dom propertyElem : propertyElems) {
-                properties.put(propertyElem.getName(), propertyElem.getValue());
+        List<String> buildArgs = new ArrayList<String>();
+        Xpp3Dom buildArgsElem = repoElem.getChild(Element.buildArgs.name());
+        if (buildArgsElem != null) {
+            Xpp3Dom[] buildArgElems = buildArgsElem.getChildren();
+            for (Xpp3Dom buildArgElem : buildArgElems) {
+                buildArgs.add(buildArgElem.getValue());
             }
         }
 
@@ -84,25 +82,21 @@ public class Repository {
         List<String> goals = Optional.ofNullable(repoElem.getChild(Element.goals.name())).map(Mapper.NODE_VALUE)
                 .map(Mapper.TO_STRING_LIST)
                 .orElseGet(new Supplier.Constant<List<String>>(SrcdepsConstants.DEFAULT_GOALS)).value();
-        List<String> profiles = Optional.ofNullable(repoElem.getChild(Element.profiles.name())).map(Mapper.NODE_VALUE)
-                .map(Mapper.TO_STRING_LIST)
-                .orElseGet(new Supplier.Constant<List<String>>(Collections.<String> emptyList())).value();
         Collection<String> urls = findUrls(repoId, repoElem.getChild(Element.url.name()).getValue(), evaluator, logger);
         return new Repository(repoId, selectors, Collections.unmodifiableCollection(urls), skipTests, mavenTestSkip,
-                goals, profiles, Collections.unmodifiableMap(properties));
+                goals, buildArgs);
     }
 
     private final List<String> goals;
     private final String id;
     private final boolean mavenTestSkip;
-    private final List<String> profiles;
-    private final Map<String, String> properties;
+    private final List<String> buildArgs;
     private final List<String> selectors;
     private final boolean skipTests;
     private final Collection<String> urls;
 
     private Repository(String id, List<String> selectors, Collection<String> urls, boolean skipTests,
-            boolean mavenTestSkip, List<String> goals, List<String> profiles, Map<String, String> properties) {
+            boolean mavenTestSkip, List<String> goals, List<String> buildArgs) {
         super();
         this.id = id;
         this.selectors = selectors;
@@ -110,8 +104,7 @@ public class Repository {
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
         this.goals = goals;
-        this.profiles = profiles;
-        this.properties = properties;
+        this.buildArgs = buildArgs;
     }
 
     @Override
@@ -135,15 +128,10 @@ public class Repository {
             return false;
         if (mavenTestSkip != other.mavenTestSkip)
             return false;
-        if (profiles == null) {
-            if (other.profiles != null)
+        if (buildArgs == null) {
+            if (other.buildArgs != null)
                 return false;
-        } else if (!profiles.equals(other.profiles))
-            return false;
-        if (properties == null) {
-            if (other.properties != null)
-                return false;
-        } else if (!properties.equals(other.properties))
+        } else if (!buildArgs.equals(other.buildArgs))
             return false;
         if (selectors == null) {
             if (other.selectors != null)
@@ -172,12 +160,8 @@ public class Repository {
         return id;
     }
 
-    public List<String> getProfiles() {
-        return profiles;
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
+    public List<String> getBuildArgs() {
+        return buildArgs;
     }
 
     public List<String> getSelectors() {
@@ -195,8 +179,7 @@ public class Repository {
         result = prime * result + ((goals == null) ? 0 : goals.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + (mavenTestSkip ? 1231 : 1237);
-        result = prime * result + ((profiles == null) ? 0 : profiles.hashCode());
-        result = prime * result + ((properties == null) ? 0 : properties.hashCode());
+        result = prime * result + ((buildArgs == null) ? 0 : buildArgs.hashCode());
         result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
         result = prime * result + (skipTests ? 1231 : 1237);
         result = prime * result + ((urls == null) ? 0 : urls.hashCode());
@@ -215,7 +198,6 @@ public class Repository {
     @Override
     public String toString() {
         return "Repository [id=" + id + ", mavenTestSkip=" + mavenTestSkip + ", selectors=" + selectors + ", skipTests="
-                + skipTests + ", urls=" + urls + ", goals=" + goals + ", profiles=" + profiles + ", properties="
-                + properties + "]";
+                + skipTests + ", urls=" + urls + ", goals=" + goals + ", buildArgs=" + buildArgs + "]";
     }
 }

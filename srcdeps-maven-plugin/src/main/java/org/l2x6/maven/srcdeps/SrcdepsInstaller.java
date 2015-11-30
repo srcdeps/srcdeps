@@ -71,9 +71,8 @@ public class SrcdepsInstaller {
         logger.info(
                 "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
         final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger)
-                .profiles(depBuild.getProfiles()) //
+                .buildArgs(depBuild.getBuildArgs()) //
                 .buildOptions() //
-                .properties(depBuild.getProperties()) //
                 .build();
 
         mojoExecutor.execute(depBuild.getWorkingDirectory(), depBuild.getGoalsString(), buildArgs);
@@ -135,7 +134,7 @@ public class SrcdepsInstaller {
                         /* depBuild == null */
                         depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(),
                                 repo.getUrls(), dep.getVersion(), scmVersion, repo.isSkipTests(),
-                                repo.isMavenTestSkip(), repo.getGoals(), repo.getProfiles(), repo.getProperties());
+                                repo.isMavenTestSkip(), repo.getGoals(), repo.getBuildArgs());
                         depBuilds.put(url, depBuild);
                     }
                 }

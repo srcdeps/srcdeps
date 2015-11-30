@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.l2x6.maven.srcdeps</groupId>
         <artifactId>srcdeps-maven-plugin-parent</artifactId>
-        <version>0.0.11-SNAPSHOT</version>
+        <version>0.0.11</version>
     </parent>
 
     <artifactId>srcdeps-maven-plugin</artifactId>

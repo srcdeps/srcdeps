@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.maven.model.Plugin;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 public interface Mapper<T, R> {
+    Mapper<Plugin, Xpp3Dom> TO_DOM = new Mapper<Plugin, Xpp3Dom>() {
+        @Override
+        public Xpp3Dom map(Plugin plugin) {
+            Object conf = plugin.getConfiguration();
+            if (conf instanceof Xpp3Dom) {
+                return (Xpp3Dom) conf;
+            }
+            return null;
+        }
+    };
+
     Mapper<Xpp3Dom, String> NODE_VALUE = new Mapper<Xpp3Dom, String>() {
         @Override
         public String map(Xpp3Dom node) {

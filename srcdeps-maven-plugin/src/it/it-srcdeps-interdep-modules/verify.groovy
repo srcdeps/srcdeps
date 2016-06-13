@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+
+File testPom = new File(basedir, "target/srcdeps/org.l2x6.maven.srcdeps.itest-0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7/pom.xml")
 assert testPom.isFile()
+
 File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact-service/0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7/srcdeps-test-artifact-service-0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7.jar")
 assert testJar.isFile()

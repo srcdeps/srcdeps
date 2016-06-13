@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+File testPom = new File(basedir, "target/srcdeps/org.l2x6.maven.srcdeps.itest-0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b/pom.xml")
 assert testPom.isFile()
 
 File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact/0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b/srcdeps-test-artifact-0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b.jar")

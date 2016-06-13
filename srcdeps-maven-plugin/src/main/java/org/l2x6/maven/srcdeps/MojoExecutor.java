@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,8 +36,7 @@ public class MojoExecutor {
     private final MavenExecutor mavenExecutor;
     private final ReleaseEnvironment releaseEnvironment;
 
-    public MojoExecutor(MavenSession session, Logger logger,
-            SrcdepsConfiguration configuration) {
+    public MojoExecutor(MavenSession session, Logger logger, SrcdepsConfiguration configuration) {
         super();
         this.logger = logger;
 

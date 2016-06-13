@@ -17,7 +17,15 @@
 import org.codehaus.plexus.util.FileUtils;
 
 File testRepo = new File(basedir, "../../../target/local-repo");
-if (testRepo.exists()) {
-    FileUtils.deleteDirectory(testRepo);
+if (!testRepo.exists()) {
+    testRepo.mkdirs();
 }
-testRepo.mkdirs();
+
+File artifactDir = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact")
+if (artifactDir.exists()) {
+    FileUtils.deleteDirectory(artifactDir);
+}
+File dependencyDir = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact")
+if (dependencyDir.exists()) {
+    FileUtils.deleteDirectory(dependencyDir);
+}

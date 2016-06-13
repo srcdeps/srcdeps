@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.l2x6.maven.srcdeps;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,59 +28,37 @@ import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.shared.release.exec.MavenExecutorException;
 import org.codehaus.plexus.logging.Logger;
-import org.l2x6.maven.srcdeps.config.Repository;
 import org.l2x6.maven.srcdeps.config.SrcdepsConfiguration;
-import org.l2x6.maven.srcdeps.scm.Scm;
-import org.l2x6.maven.srcdeps.scm.ScmException;
-import org.l2x6.maven.srcdeps.util.ArgsBuilder;
-import org.l2x6.maven.srcdeps.util.PropsEvaluator;
+import org.l2x6.maven.srcdeps.config.SrcdepsRepository;
+import org.l2x6.srcdeps.core.BuildException;
+import org.l2x6.srcdeps.core.BuildRequest;
+import org.l2x6.srcdeps.core.BuildService;
+import org.l2x6.srcdeps.core.SrcVersion;
 
 public class SrcdepsInstaller {
 
     private final ArtifactHandlerManager artifactHandlerManager;
 
     private final SrcdepsConfiguration configuration;
-    private final PropsEvaluator evaluator;
     private final Logger logger;
-    private final MojoExecutor mojoExecutor;
-    private final Map<Dependency, ScmVersion> revisions;
+    private final Map<Dependency, SrcVersion> revisions;
     private final MavenSession session;
+    private final BuildService buildService;
 
-    public SrcdepsInstaller(MavenSession session, PropsEvaluator evaluator, Logger logger,
-            ArtifactHandlerManager artifactHandlerManager, SrcdepsConfiguration configuration,
-            Map<Dependency, ScmVersion> revisions) {
+    public SrcdepsInstaller(MavenSession session, Logger logger, ArtifactHandlerManager artifactHandlerManager,
+            SrcdepsConfiguration configuration, Map<Dependency, SrcVersion> revisions, BuildService buildService) {
         super();
         this.session = session;
-        this.evaluator = evaluator;
         this.logger = logger;
         this.artifactHandlerManager = artifactHandlerManager;
         this.configuration = configuration;
         this.revisions = revisions;
-        this.mojoExecutor = new MojoExecutor(session, logger, configuration);
+        this.buildService = buildService;
     }
 
-    private void build(DependencyBuild depBuild) throws MavenExecutorException {
-        logger.info(
-                "srcdeps-maven-plugin is setting [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
-
-        final String versionsArgs = new ArgsBuilder(configuration, session, evaluator, logger)
-                .property("newVersion", depBuild.getVersion()).property("generateBackupPoms", "false").build();
-        mojoExecutor.execute(depBuild.getWorkingDirectory(), "versions:set", versionsArgs);
-
-        logger.info(
-                "srcdeps-maven-plugin is building [" + depBuild.getId() + "] version [" + depBuild.getVersion() + "]");
-        final String buildArgs = new ArgsBuilder(configuration, session, evaluator, logger)
-                .buildArgs(depBuild.getBuildArgs()) //
-                .buildOptions() //
-                .build();
-
-        mojoExecutor.execute(depBuild.getWorkingDirectory(), depBuild.getGoalsString(), buildArgs);
-    }
-
-    protected Repository findRepository(Dependency dep) {
-        for (Repository repository : configuration.getRepositories()) {
+    protected SrcdepsRepository findRepository(Dependency dep) {
+        for (SrcdepsRepository repository : configuration.getRepositories()) {
             for (String selector : repository.getSelectors()) {
                 if (dep.getGroupId().equals(selector)) {
                     return repository;
@@ -91,11 +70,11 @@ public class SrcdepsInstaller {
 
     public void install() throws MavenExecutionException {
         logger.debug("srcdeps-maven-plugin using configuration " + configuration);
-        Map<String, DependencyBuild> depBuilds = new HashMap<String, DependencyBuild>(revisions.size());
+        Map<String, BuildRequest> depBuilds = new HashMap<String, BuildRequest>(revisions.size());
 
         ArtifactRepository localRepo = session.getLocalRepository();
 
-        for (Map.Entry<Dependency, ScmVersion> revisionEntry : revisions.entrySet()) {
+        for (Map.Entry<Dependency, SrcVersion> revisionEntry : revisions.entrySet()) {
             Dependency dep = revisionEntry.getKey();
 
             Artifact artifact = new DefaultArtifact(dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
@@ -107,51 +86,54 @@ public class SrcdepsInstaller {
                 logger.info("srcdeps-maven-plugin dependency available in local repository: "
                         + artifactFile.getAbsolutePath());
             } else {
-                logger.info("srcdeps-maven-plugin dependency missing in local repository: "
+                logger.info("srcdeps-maven-plugin dependency missing in local repository: ff "
                         + artifactFile.getAbsolutePath());
-                ScmVersion scmVersion = revisionEntry.getValue();
-                Repository repo = findRepository(dep);
+                SrcVersion srcVersion = revisionEntry.getValue();
+                SrcdepsRepository repo = findRepository(dep);
                 if (repo == null) {
                     if (configuration.isFailOnMissingRepository()) {
                         throw new RuntimeException("Could not find repository for " + dep);
                     } else {
                         /*
-                         * ignore and assume that the user knows what he is
-                         * doing
+                         * ignore and assume that the user knows what he is doing
                          */
                         logger.warn("srcdeps-maven-plugin has not found a SCM repository for dependency [" + dep + "]");
                     }
                 } else {
                     String url = repo.getDefaultUrl();
-                    DependencyBuild depBuild = depBuilds.get(url);
-                    if (depBuild != null) {
-                        ScmVersion foundScmVersion = depBuild.getScmVersion();
-                        if (foundScmVersion != null && !foundScmVersion.equals(scmVersion)) {
+                    BuildRequest request = depBuilds.get(url);
+                    if (request != null) {
+                        SrcVersion foundScmVersion = request.getSrcVersion();
+                        if (foundScmVersion != null && !foundScmVersion.equals(srcVersion)) {
                             throw new RuntimeException("Cannot handle two revisions for the same repository URL '" + url
-                                    + "': '" + foundScmVersion + "' and '" + scmVersion + "' of " + dep);
+                                    + "': '" + foundScmVersion + "' and '" + srcVersion + "' of " + dep);
                         }
                     } else {
                         /* depBuild == null */
-                        depBuild = new DependencyBuild(configuration.getSourcesDirectory(), repo.getId(),
-                                repo.getUrls(), dep.getVersion(), scmVersion, repo.isSkipTests(),
-                                repo.isMavenTestSkip(), repo.getGoals(), repo.getBuildArgs());
-                        depBuilds.put(url, depBuild);
+                        String id = repo.getId() + "-" + dep.getVersion();
+                        Path projectRootDirectory = session.getTopLevelProject().getBasedir().toPath()
+                                .resolve("target/srcdeps/" + id);
+                        logger.info("using projectRootDirectory "+ projectRootDirectory.toString());
+
+                        request = BuildRequest.builder() //
+                                .projectRootDirectory(projectRootDirectory) //
+                                .scmUrls(repo.getUrls()) //
+                                .srcVersion(SrcVersion.parse(dep.getVersion())) //
+                                .buildArguments(repo.getBuildArguments()) //
+                                .verbosity(configuration.getVerbosity()) //
+                                .ioRedirects(configuration.getRedirects()) //
+                                .build();
+                        depBuilds.put(url, request);
                     }
                 }
             }
-
         }
 
         /* this could eventually be done in parallel */
-        for (DependencyBuild depBuild : depBuilds.values()) {
+        for (BuildRequest request : depBuilds.values()) {
             try {
-                final Scm scm = Scm.forUrl(depBuild.getUrls().iterator().next(), configuration, mojoExecutor, session,
-                        logger);
-                scm.checkout(depBuild, evaluator);
-                build(depBuild);
-            } catch (ScmException e) {
-                throw new RuntimeException(e);
-            } catch (MavenExecutorException e) {
+                buildService.build(request);
+            } catch (BuildException e) {
                 throw new RuntimeException(e);
             }
         }

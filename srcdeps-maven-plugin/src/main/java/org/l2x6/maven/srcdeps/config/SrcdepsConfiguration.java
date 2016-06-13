@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 package org.l2x6.maven.srcdeps.config;
 
 import java.io.File;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -27,11 +28,13 @@ import java.util.StringTokenizer;
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.l2x6.maven.srcdeps.SrcdepsConstants;
+import org.l2x6.maven.srcdeps.SrcdepsPluginConstants;
 import org.l2x6.maven.srcdeps.util.Mapper;
 import org.l2x6.maven.srcdeps.util.Optional;
 import org.l2x6.maven.srcdeps.util.PropsEvaluator;
 import org.l2x6.maven.srcdeps.util.Supplier;
+import org.l2x6.srcdeps.core.BuildRequest.Verbosity;
+import org.l2x6.srcdeps.core.shell.IoRedirects;
 
 public class SrcdepsConfiguration {
     public static class Builder {
@@ -117,42 +120,61 @@ public class SrcdepsConfiguration {
                     .map(Mapper.NODE_VALUE).orElseGet(evaluator.stringSupplier(Element.mavenTestSkip))
                     .map(Mapper.TO_BOOLEAN).orElseGet(Supplier.Constant.FALSE).value();
 
-            final boolean quiet = Optional.ofNullable(dom.getChild(Element.quiet.name())).map(Mapper.NODE_VALUE)
-                    .orElseGet(evaluator.stringSupplier(Element.quiet)).map(Mapper.TO_BOOLEAN)
-                    .orElseGet(Supplier.Constant.FALSE).value();
+            final String verbosity = Optional.ofNullable(dom.getChild(Element.verbosity.name())).map(Mapper.NODE_VALUE)
+                    .orElseGet(evaluator.stringSupplier(Element.verbosity))
+                    .orElseGet(new Supplier.Constant<String>("default")).value();
+
+            final Redirect input = IoRedirects.parseUri( //
+                    Optional.ofNullable(dom.getChild(Element.builderInput.name())) //
+                            .map(Mapper.NODE_VALUE) //
+                            .orElseGet(new Supplier.Constant<String>("inherit")) //
+                            .value());
+            final Redirect output = IoRedirects.parseUri( //
+                    Optional.ofNullable(dom.getChild(Element.builderOutput.name())) //
+                    .map(Mapper.NODE_VALUE) //
+                    .orElseGet(new Supplier.Constant<String>("inherit")) //
+                    .value());
+            final Redirect error = IoRedirects.parseUri( //
+                    Optional.ofNullable(dom.getChild(Element.builderError.name())) //
+                    .map(Mapper.NODE_VALUE) //
+                    .orElseGet(new Supplier.Constant<String>("inherit")) //
+                    .value());
+            final IoRedirects redirects = new IoRedirects(input, output, error);
 
             final Set<String> failWithProfiles = Optional.ofNullable(dom.getChild(Element.failWithProfiles.name()))
                     .map(Mapper.NODE_VALUE).orElseGet(evaluator.stringSupplier(Element.failWithProfiles))
                     .map(Mapper.TO_STRING_SET)
-                    .orElseGet(new Supplier.Constant<Set<String>>(SrcdepsConstants.DEFAULT_FAIL_WITH_PROFILES)).value();
+                    .orElseGet(new Supplier.Constant<Set<String>>(SrcdepsPluginConstants.DEFAULT_FAIL_WITH_PROFILES))
+                    .value();
 
             Xpp3Dom reposElem = dom.getChild(Element.repositories.name());
-            List<Repository> repos = new ArrayList<Repository>();
+            List<SrcdepsRepository> repos = new ArrayList<SrcdepsRepository>();
             if (reposElem != null) {
                 Xpp3Dom[] reposElems = reposElem.getChildren(Element.repository.name());
                 for (Xpp3Dom repoElem : reposElems) {
-                    repos.add(Repository.load(repoElem, skipTests, mavenTestSkip, evaluator, logger));
+                    repos.add(SrcdepsRepository.load(repoElem, skipTests, mavenTestSkip, evaluator, logger));
                 }
             }
 
             return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
-                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip, skip, quiet,
-                    forwardProperties, failWithProfiles);
+                    sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip, skip,
+                    Verbosity.ofId(verbosity), redirects, forwardProperties, failWithProfiles);
         }
 
     }
 
     public enum Element {
+        buildArgs, //
+        builderError, //
+        builderInput, //
+        builderOutput, //
         failOnMissingRepository(true), //
         failWithProfiles, //
         forwardProperties, //
-        goals, //
         id, //
         javaHome(true), //
         mavenHome(true), //
         mavenTestSkip(true), //
-        buildArgs, //
-        quiet(true), //
         repositories, //
         repository, //
         scmPluginVersion(true), //
@@ -161,7 +183,8 @@ public class SrcdepsConfiguration {
         skip(true), //
         skipTests(true), //
         sourcesDirectory(true), //
-        url;
+        url, //
+        verbosity(true);
 
         private final boolean forwardedByDefault;
 
@@ -188,16 +211,18 @@ public class SrcdepsConfiguration {
     private final File javaHome;
     private final File mavenHome;
     private final boolean mavenTestSkip;
-    private final boolean quiet;
-    private final List<Repository> repositories;
+    private final IoRedirects redirects;
+    private final List<SrcdepsRepository> repositories;
     private final String scmPluginVersion;
     private final boolean skip;
     private final boolean skipTests;
     private final File sourcesDirectory;
+    private final Verbosity verbosity;
 
-    private SrcdepsConfiguration(List<Repository> repositories, boolean failOnMissingRepository, File sourcesDirectory,
-            File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests, boolean mavenTestSkip,
-            boolean skip, boolean quiet, Set<String> forwardProperties, Set<String> failWithProfiles) {
+    private SrcdepsConfiguration(List<SrcdepsRepository> repositories, boolean failOnMissingRepository,
+            File sourcesDirectory, File mavenHome, File javaHome, String scmPluginVersion, boolean skipTests,
+            boolean mavenTestSkip, boolean skip, Verbosity verbosity, IoRedirects redirects,
+            Set<String> forwardProperties, Set<String> failWithProfiles) {
         super();
         this.repositories = repositories;
         this.failOnMissingRepository = failOnMissingRepository;
@@ -208,9 +233,10 @@ public class SrcdepsConfiguration {
         this.skip = skip;
         this.skipTests = skipTests;
         this.mavenTestSkip = mavenTestSkip;
-        this.quiet = quiet;
+        this.verbosity = verbosity;
         this.forwardProperties = forwardProperties;
         this.failWithProfiles = failWithProfiles;
+        this.redirects = redirects;
     }
 
     public Set<String> getFailWithProfiles() {
@@ -229,7 +255,11 @@ public class SrcdepsConfiguration {
         return mavenHome;
     }
 
-    public List<Repository> getRepositories() {
+    public IoRedirects getRedirects() {
+        return redirects;
+    }
+
+    public List<SrcdepsRepository> getRepositories() {
         return repositories;
     }
 
@@ -241,16 +271,16 @@ public class SrcdepsConfiguration {
         return sourcesDirectory;
     }
 
+    public Verbosity getVerbosity() {
+        return verbosity;
+    }
+
     public boolean isFailOnMissingRepository() {
         return failOnMissingRepository;
     }
 
     public boolean isMavenTestSkip() {
         return mavenTestSkip;
-    }
-
-    public boolean isQuiet() {
-        return quiet;
     }
 
     public boolean isSkip() {
@@ -263,10 +293,11 @@ public class SrcdepsConfiguration {
 
     @Override
     public String toString() {
-        return "SrcdepsConfiguration [failOnMissingRepository=" + failOnMissingRepository + ", javaHome=" + javaHome
+        return "SrcdepsConfiguration [failOnMissingRepository=" + failOnMissingRepository + ", failWithProfiles="
+                + failWithProfiles + ", forwardProperties=" + forwardProperties + ", javaHome=" + javaHome
                 + ", mavenHome=" + mavenHome + ", mavenTestSkip=" + mavenTestSkip + ", repositories=" + repositories
                 + ", scmPluginVersion=" + scmPluginVersion + ", skip=" + skip + ", skipTests=" + skipTests
-                + ", sourcesDirectory=" + sourcesDirectory + "]";
+                + ", sourcesDirectory=" + sourcesDirectory + ", verbosity=" + verbosity + "]";
     }
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.maven.srcdeps.scm;
+package org.l2x6.srcdeps.core.shell;
 
-public class ScmException extends Exception {
+import org.l2x6.srcdeps.core.BuildException;
 
-    /**  */
-    private static final long serialVersionUID = 6440562328717677303L;
+/**
+ * Thrown when an execution of a shell command is not finished within some given timeout.
+ *
+ * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
+ */
+public class CommandTimeoutException extends BuildException {
 
-    public ScmException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private static final long serialVersionUID = -8311365402356710884L;
 
-    public ScmException(String message) {
+    public CommandTimeoutException(String message) {
         super(message);
     }
 
-    public ScmException(Throwable cause) {
+    public CommandTimeoutException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CommandTimeoutException(Throwable cause) {
         super(cause);
     }
 

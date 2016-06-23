@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.l2x6.srcdeps.core.shell.IoRedirects;
@@ -53,7 +54,7 @@ public class BuildRequest {
         private List<String> scmUrls = new ArrayList<>();
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
-        private Verbosity verbosity = Verbosity.default_;
+        private Verbosity verbosity = Verbosity.info;
 
         /**
          * @param addDefaultBuildArguments
@@ -204,37 +205,29 @@ public class BuildRequest {
     };
 
     /**
-     * The verbosity level to use when configuring the {@link Builder}.
+     * The verbosity level the appropriate {@link Builder} should use when executing a {@link BuildRequest}. The
+     * interpretation of the individual levels is up to the given {@link Builder} implementation. Some {@link Builder}s
+     * may map the levels listed here to a distinct set of levels they support internally.
      */
     public enum Verbosity {
-        debug, default_("default"), quiet;
-        public static Verbosity ofId(String id) {
-            switch (id) {
+        trace, debug, info, warn, error;
+
+        public static Verbosity fastValueOf(String level) {
+            SrcdepsCoreUtils.assertArgNotNull(level, "Verbosity name");
+            switch (level.toLowerCase(Locale.ROOT)) {
+            case "trace":
+                return trace;
             case "debug":
                 return debug;
-            case "default":
-            case "default_":
-                return default_;
-            case "quiet":
-                return quiet;
+            case "info":
+                return info;
+            case "warn":
+                return warn;
+            case "error":
+                return error;
             default:
-                throw new IllegalStateException("No such " + Verbosity.class.getName() + " with id [" + id + "]");
+                throw new IllegalStateException("No such " + Verbosity.class.getName() + " with name [" + level + "]");
             }
-        }
-
-        private final String id;
-
-        private Verbosity() {
-            this.id = name();
-        }
-
-        private Verbosity(String id) {
-            this.id = id;
-        }
-
-        @Override
-        public String toString() {
-            return id;
         }
 
     }

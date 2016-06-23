@@ -122,7 +122,7 @@ public class SrcdepsConfiguration {
 
             final String verbosity = Optional.ofNullable(dom.getChild(Element.verbosity.name())).map(Mapper.NODE_VALUE)
                     .orElseGet(evaluator.stringSupplier(Element.verbosity))
-                    .orElseGet(new Supplier.Constant<String>("default")).value();
+                    .orElseGet(new Supplier.Constant<String>(Verbosity.info.name())).value();
 
             final Redirect input = IoRedirects.parseUri( //
                     Optional.ofNullable(dom.getChild(Element.builderInput.name())) //
@@ -158,7 +158,7 @@ public class SrcdepsConfiguration {
 
             return new SrcdepsConfiguration(Collections.unmodifiableList(repos), failOnMissingRepository,
                     sourcesDirectory, mavenHome, javaHome, scmPluginVersion, skipTests, mavenTestSkip, skip,
-                    Verbosity.ofId(verbosity), redirects, forwardProperties, failWithProfiles);
+                    Verbosity.fastValueOf(verbosity), redirects, forwardProperties, failWithProfiles);
         }
 
     }

@@ -70,12 +70,14 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     @Override
     protected List<String> getVerbosityArguments(Verbosity verbosity) {
         switch (verbosity) {
-        case quiet:
-            return Collections.singletonList("--quiet");
-        case default_:
-            return Collections.emptyList();
+        case trace:
         case debug:
             return Collections.singletonList("--debug");
+        case info:
+            return Collections.emptyList();
+        case warn:
+        case error:
+            return Collections.singletonList("--quiet");
         default:
             throw new IllegalStateException("Unexpected " + Verbosity.class.getName() + " value [" + verbosity + "]");
         }

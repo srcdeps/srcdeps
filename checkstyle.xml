@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 
-    Copyright 2015 Maven Source Dependencies
+    Copyright 2015-2016 Maven Source Dependencies
     Plugin contributors as indicated by the @author tags.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,10 +90,6 @@
     <module name="PackageAnnotation" />
     <module name="CovariantEquals" />
     <module name="ArrayTypeStyle" />
-
-    <module name="LineLength">
-      <property name="max" value="120" />
-    </module>
 
   </module>
 

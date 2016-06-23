@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
  */
 import org.codehaus.plexus.util.FileUtils
 
-File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
+File testPom = new File(basedir, "target/srcdeps/org.l2x6.maven.srcdeps.itest-0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9/pom.xml")
 assert testPom.isFile()
 
 File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact-api/0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9/srcdeps-test-artifact-api-0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9.jar")

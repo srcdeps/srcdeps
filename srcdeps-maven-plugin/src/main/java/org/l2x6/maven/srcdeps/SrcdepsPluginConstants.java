@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,16 +19,12 @@ package org.l2x6.maven.srcdeps;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
-public class SrcdepsConstants {
-    public static final String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
-    public static final char SRC_VERSION_DELIMITER = '-';
-    public static final char SRC_VERSION_ELEMENT_DELIMITER = ';';
-    public static final String SRC_VERSION_INFIX = "-SRC-";
-    public static final String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
-    public static final List<String> DEFAULT_GOALS = Collections.unmodifiableList(Arrays.asList("clean", "install"));
-    public static final Set<String> DEFAULT_FAIL_WITH_PROFILES = Collections
+public interface SrcdepsPluginConstants {
+    String ORG_L2X6_MAVEN_SRCDEPS_GROUP_ID = "org.l2x6.maven.srcdeps";
+    String SRCDEPS_MAVEN_PLUGIN_ADRTIFACT_ID = "srcdeps-maven-plugin";
+    Set<String> DEFAULT_FAIL_WITH_PROFILES = Collections
             .unmodifiableSet(new LinkedHashSet<String>(Arrays.asList("release")));
+
 }

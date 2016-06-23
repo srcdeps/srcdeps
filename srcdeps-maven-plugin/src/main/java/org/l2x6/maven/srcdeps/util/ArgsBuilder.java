@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Maven Source Dependencies
+ * Copyright 2015-2016 Maven Source Dependencies
  * Plugin contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,9 +40,6 @@ public class ArgsBuilder {
         this.evaluator = evaluator;
         this.logger = logger;
         this.session = session;
-        if (configuration.isQuiet()) {
-            opt("-q");
-        }
     }
 
     public String build() {

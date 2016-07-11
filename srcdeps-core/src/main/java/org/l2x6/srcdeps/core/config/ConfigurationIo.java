@@ -14,27 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.srcdeps.core;
+package org.l2x6.srcdeps.core.config;
+
+import java.io.Reader;
 
 /**
- * Thrown on any SCM related problems.
+ * An interface for loading a {@link Configuration}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class ScmException extends BuildException {
-
-    private static final long serialVersionUID = -1784759563206707275L;
-
-    public ScmException(String message) {
-        super(message);
-    }
-
-    public ScmException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ScmException(Throwable cause) {
-        super(cause);
-    }
-
+public interface ConfigurationIo {
+    Configuration read(Reader reader) throws ConfigurationException;
 }

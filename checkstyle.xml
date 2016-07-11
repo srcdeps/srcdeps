@@ -37,8 +37,7 @@
   <module name="RegexpMultiline">
     <property name="format" value="\r\n" />
     <property name="maximum" value="0" />
-    <property name="message"
-        value="Line ends with Windows-style \r\n characters. Please use UNIX-style \n end of lines." />
+    <property name="message" value="Line ends with Windows-style \r\n characters. Please use UNIX-style \n end of lines." />
   </module>
 
   <module name="TreeWalker">
@@ -56,10 +55,10 @@
     </module>
 
     <module name="ImportOrder">
-        <property name="groups" value="/^javax?\./,org,com"/>
-        <property name="ordered" value="true"/>
-        <property name="separated" value="true"/>
-        <property name="option" value="top"/>
+      <property name="groups" value="/^javax?\./,org,com" />
+      <property name="ordered" value="true" />
+      <property name="separated" value="true" />
+      <property name="option" value="top" />
     </module>
 
     <module name="IllegalImport">
@@ -73,8 +72,7 @@
     <!-- Checks for blocks. You know, those {}'s -->
     <module name="LeftCurly">
       <property name="option" value="eol" />
-      <property name="tokens"
-        value="CLASS_DEF,CTOR_DEF,INTERFACE_DEF,METHOD_DEF,LITERAL_SWITCH,STATIC_INIT" />
+      <property name="tokens" value="CLASS_DEF,CTOR_DEF,INTERFACE_DEF,METHOD_DEF,LITERAL_SWITCH,STATIC_INIT" />
     </module>
 
     <!-- Checks for common coding problems -->

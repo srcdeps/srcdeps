@@ -27,16 +27,9 @@
     <version>0.0.12-SNAPSHOT</version>
   </parent>
 
-  <artifactId>srcdeps-core</artifactId>
-
-  <name>Srcdeps Core</name>
+  <artifactId>srcdeps-maven-local-repository</artifactId>
 
   <dependencies>
-    <dependency>
-      <groupId>com.google.inject</groupId>
-      <artifactId>guice</artifactId>
-      <scope>test</scope>
-    </dependency>
 
     <dependency>
       <groupId>javax.inject</groupId>
@@ -45,20 +38,40 @@
     </dependency>
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.eclipse.jgit</groupId>
-      <artifactId>org.eclipse.jgit</artifactId>
+      <groupId>org.eclipse.aether</groupId>
+      <artifactId>aether-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.aether</groupId>
+      <artifactId>aether-spi</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.aether</groupId>
+      <artifactId>aether-impl</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.eclipse.sisu</groupId>
       <artifactId>org.eclipse.sisu.inject</artifactId>
-      <scope>test</scope>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.l2x6.srcdeps</groupId>
+      <artifactId>srcdeps-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.l2x6.srcdeps</groupId>
+      <artifactId>srcdeps-config-yaml</artifactId>
     </dependency>
 
     <dependency>
@@ -67,25 +80,11 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemProperties>
-            <project.build.directory>${project.build.directory}</project.build.directory>
-          </systemProperties>
-        </configuration>
-      </plugin>
+
       <plugin>
         <groupId>org.eclipse.sisu</groupId>
         <artifactId>sisu-maven-plugin</artifactId>

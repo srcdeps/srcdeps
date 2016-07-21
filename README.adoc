@@ -7,13 +7,15 @@ endif::[]
 
 A set of tools for building dependencies from their sources during the build.
 
-Srcdeps provides a way to make a multi-component Java Project more continuous, while staying with stock
-build tools and keeping components in separate git repositories.
+= What is this good for?
+
+Srcdeps alleviates some of the pains that comes from achieving Continuous Delivery for Maven projects. With srcdeps, a module can depend on a specific revision of another module. For instance, a module `web-banking-frontend` could depend on `account-balance-microservice` at git revision `abc123`, without requiring the `account-balance-microservice` to perform a complete Maven release.
+
+
+== Srcdeps support for Maven
 
 Currently, the srcdeps toolkit supports only Maven 3.3.1+, although the `srcdeps-core` library has an ambition to be
 generic enough so that a support for other Java build tools such as Gradle or sbt can be added (contributions are welcome!).
-
-== Srcdeps support for Maven
 
 The present solution for Maven is leveraging the concept of Maven Core Extensions introduced in Maven 3.3.1.
 In particular, we provide an implementation of `LocalRepositoryManager` that delegates all the usual artifact
@@ -61,30 +63,6 @@ repositories:
 ----
 
 
-=== Legacy note
-
-Originally, the present project provided a Maven plugin called `srcdeps-maven-plugin` that worked fairly well in most situations, but it turned out soon that the Maven Plugin API is not rich enough to allow for catching dependencies of
-all possible kinds. Most notably, the given project's parent pom and imports in `dependencyManagement` sections were
-resolved by Maven even before the plugin was initialized. Thus, if the given project's parent pom had a `-SRC-`
-version, the build failed with a missing artifact error message, simply because it happened before
-`srcdeps-maven-plugin` could do anything.
-
-An outdated presentation about the abandoned `srcdeps-maven-plugin`: http://ppalaga.github.io/presentations/150929-srcdeps-maven-plugin/150929-srcdeps-maven-plugin.html
-
-
-== Why to use Srcdeps tools
-
-The initiator of Srcdeps tools works on a project that consists of several components which have independent life cycles
-and are spread over separate git repositories. In a need for a fast (ideally continuous) integration of new component
-features, the team basically had two choices: either depend on SNAPSHOTs or release components very often. SNAPSHOTs
-make the builds non-reproducible and frequent releases would pollute both SCM history and Maven repos with releases
-that would be typically needed for just a short period of time.
-
-The core of the idea of the plugin is that the components' maintainers actually do not need to release the components
-because they are not standalone deliverables. Deliverable is only the "product" that depends on them. If the component
-consumer projects were able to declare the dependencies using git revisions and build them on the fly, they could get
-rid of both SNAPSHOTS and releases. Srcdeps tools do exactly that.
-
 == How Srcdeps tools work
 
 * Srcdeps tools are supposed to build dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
@@ -104,3 +82,16 @@ rid of both SNAPSHOTS and releases. Srcdeps tools do exactly that.
 * All code and contributions are under link:/LICENSE[Apache License]
 * Issues and Discussions are on GitHub: https://github.com/l2x6/srcdeps-maven-plugin/issues
 * Please contribute using GitHub Pull Requests
+
+
+=== Legacy note
+
+Originally, the present project provided a Maven plugin called `srcdeps-maven-plugin` that worked fairly well in most situations, but it turned out soon that the Maven Plugin API is not rich enough to allow for catching dependencies of
+all possible kinds. Most notably, the given project's parent pom and imports in `dependencyManagement` sections were
+resolved by Maven even before the plugin was initialized. Thus, if the given project's parent pom had a `-SRC-`
+version, the build failed with a missing artifact error message, simply because it happened before
+`srcdeps-maven-plugin` could do anything.
+
+An outdated presentation about the abandoned `srcdeps-maven-plugin`: http://ppalaga.github.io/presentations/150929-srcdeps-maven-plugin/150929-srcdeps-maven-plugin.html
+
+

@@ -55,6 +55,7 @@ public class BuildRequest {
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
         private Verbosity verbosity = Verbosity.info;
+        private boolean skipTests = true;
 
         /**
          * @param addDefaultBuildArguments
@@ -66,12 +67,17 @@ public class BuildRequest {
             return this;
         }
 
+        public BuildRequestBuilder skipTests(boolean skipTests) {
+            this.skipTests = skipTests;
+            return this;
+        }
+
         /**
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
             return new BuildRequest(projectRootDirectory, srcVersion, Collections.unmodifiableList(scmUrls),
-                    Collections.unmodifiableList(buildArguments), addDefaultBuildArguments,
+                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
                     Collections.unmodifiableMap(buildEnvironment), verbosity, ioRedirects, timeoutMs);
         }
 
@@ -210,7 +216,7 @@ public class BuildRequest {
      * may map the levels listed here to a distinct set of levels they support internally.
      */
     public enum Verbosity {
-        trace, debug, info, warn, error;
+        debug, error, info, trace, warn;
 
         public static Verbosity fastValueOf(String level) {
             SrcdepsCoreUtils.assertArgNotNull(level, "Verbosity name");
@@ -248,12 +254,13 @@ public class BuildRequest {
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
     private final List<String> scmUrls;
+    private final boolean skipTests;
     private final SrcVersion srcVersion;
     private final long timeoutMs;
     private final Verbosity verbosity;
 
     private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, List<String> scmUrls,
-            List<String> buildArguments, boolean addDefaultBuildArguments, Map<String, String> buildEnvironment,
+            List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments, Map<String, String> buildEnvironment,
             Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs) {
         super();
 
@@ -269,6 +276,7 @@ public class BuildRequest {
         this.srcVersion = srcVersion;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
+        this.skipTests = skipTests;
         this.buildEnvironment = buildEnvironment;
         this.verbosity = verbosity;
         this.timeoutMs = timeoutMs;
@@ -347,6 +355,10 @@ public class BuildRequest {
      */
     public boolean isAddDefaultBuildArguments() {
         return addDefaultBuildArguments;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
     }
 
     @Override

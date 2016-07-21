@@ -47,30 +47,29 @@ public abstract class ShellBuilder implements Builder {
     @Override
     public void build(BuildRequest request) throws BuildException {
         List<String> args = mergedBuildArguments(request, getDefaultBuildArguments(),
-                getVerbosityArguments(request.getVerbosity()));
+                getVerbosityArguments(request.getVerbosity()), getSkipTestsArguments(request.isSkipTests()));
         ShellCommand command = new ShellCommand(executable, args, request.getProjectRootDirectory(),
                 request.getBuildEnvironment(), request.getIoRedirects(), request.getTimeoutMs());
         Shell.execute(command).assertSuccess();
     }
 
     public static List<String> mergedBuildArguments(BuildRequest request, List<String> defaultArguments,
-            List<String> verbosityArguments) {
+            List<String> verbosityArguments, List<String> skipTestsArguments) {
+        List<String> result = new ArrayList<>();
         if (request.isAddDefaultBuildArguments()) {
-            List<String> result = new ArrayList<>(request.getBuildArguments());
             result.addAll(defaultArguments);
-            result.addAll(verbosityArguments);
-            return result;
-        } else if (verbosityArguments.isEmpty()) {
-            return request.getBuildArguments();
-        } else {
-            List<String> result = new ArrayList<>(request.getBuildArguments());
-            result.addAll(verbosityArguments);
-            return result;
         }
+        result.addAll(request.getBuildArguments());
+        result.addAll(verbosityArguments);
+        result.addAll(skipTestsArguments);
+
+        return result;
     }
 
     protected abstract List<String> getDefaultBuildArguments();
 
     protected abstract List<String> getVerbosityArguments(Verbosity verbosity);
+
+    protected abstract List<String> getSkipTestsArguments(boolean skipTests);
 
 }

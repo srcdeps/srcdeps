@@ -42,33 +42,22 @@ are built and installed while they are looked up.
 
 ==== 2. `.mvn/srcdeps.yaml`
 
- Various settings have to be configured in `.mvn/srcdeps.yaml` file. Especially, the mapping from groupId's of
- dependencies to SCM repositiries where their sources reside.
+A few settings have to be configured in `.mvn/srcdeps.yaml` file. Especially, the mapping from groupId's of
+dependencies to SCM repositiries where their sources reside. This is a minimal `.mvn/srcdeps.yaml` file. Please
+refer to srcdeps.yaml.adoc for full reference.
 
 [source,yaml]
 ----
 configModelVersion: 1.0
-forwardProperties:
-- myForwardProperty
-builderIo:
-  stdin: inherit
-  stdout: inherit
-  stderr: inherit
-skip: false
-skipTests: false
-sourcesDirectory: ~/.m2/srcdeps
-verbosity: info
 repositories:
   hawkularCommons:
     selectors:
-    - org.hawkular.commons # if one of the selectors matches the groupId of a -SRC- dependency,
-                           # then the urls and buildArguments are used to build that dependency
+    - org.l2x6.maven.srcdeps.itest # if one of the selectors matches the groupId of a -SRC- dependency,
+                                   # then the urls will be used to build that dependency
     urls:
-    - git:https://github.com/hawkular/hawkular-commons.git
-    buildArguments:
-    - -Dcheckstyle.skip=true
-    - -Dlicense.skip=true
-    - -Drevapi.skip=true
+    - https://github.com/l2x6/srcdeps-test-artifact.git # If you list multiple SCM repos here
+                                                        # then the first successful checkout will count
+
 ----
 
 

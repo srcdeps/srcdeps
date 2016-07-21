@@ -206,6 +206,8 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                     .scmUrls(scmRepo.getUrls()) //
                     .srcVersion(SrcVersion.parse(version)) //
                     .buildArguments(scmRepo.getBuildArguments()) //
+                    .skipTests(scmRepo.isSkipTests())
+                    .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments())
                     .verbosity(config.getVerbosity()) //
                     .ioRedirects(ioRedirects) //
                     .build();

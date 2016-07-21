@@ -31,17 +31,21 @@ public class ScmRepository {
 
     public static class Builder {
 
-        private List<String> buildArguments = new ArrayList<>();
+        private boolean addDefaultBuildArguments;
 
+        private List<String> buildArguments = new ArrayList<>();
         private String id;
         private List<String> selectors = new ArrayList<>();
+        private boolean skipTests = true;
         private Collection<String> urls = new LinkedHashSet<String>();
+
         public Builder() {
         }
 
         public ScmRepository build() {
             return new ScmRepository(id, Collections.unmodifiableList(selectors),
-                    Collections.unmodifiableCollection(urls), Collections.unmodifiableList(buildArguments));
+                    Collections.unmodifiableCollection(urls), Collections.unmodifiableList(buildArguments), skipTests,
+                    addDefaultBuildArguments);
         }
 
         public Builder buildArguments(List<String> buildArgument) {
@@ -59,6 +63,11 @@ public class ScmRepository {
             return this;
         }
 
+        public Builder skipTests(boolean skipTests) {
+            this.skipTests = skipTests;
+            return this;
+        }
+
         public Builder urls(String url) {
             this.urls.add(url);
             return this;
@@ -70,17 +79,22 @@ public class ScmRepository {
         return new Builder();
     }
 
+    private final boolean addDefaultBuildArguments;
     private final List<String> buildArguments;
     private final String id;
     private final List<String> selectors;
+    private final boolean skipTests;
     private final Collection<String> urls;
 
-    private ScmRepository(String id, List<String> selectors, Collection<String> urls, List<String> buildArgs) {
+    private ScmRepository(String id, List<String> selectors, Collection<String> urls, List<String> buildArgs,
+            boolean skipTests, boolean addDefaultBuildArguments) {
         super();
         this.id = id;
         this.selectors = selectors;
         this.urls = urls;
         this.buildArguments = buildArgs;
+        this.skipTests = skipTests;
+        this.addDefaultBuildArguments = addDefaultBuildArguments;
     }
 
     public List<String> getBuildArguments() {
@@ -97,6 +111,14 @@ public class ScmRepository {
 
     public Collection<String> getUrls() {
         return urls;
+    }
+
+    public boolean isAddDefaultBuildArguments() {
+        return addDefaultBuildArguments;
+    }
+
+    public boolean isSkipTests() {
+        return skipTests;
     }
 
     @Override

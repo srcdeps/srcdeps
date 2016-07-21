@@ -16,10 +16,6 @@
  */
 package org.l2x6.srcdeps.config.yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.l2x6.srcdeps.config.yaml.internal.SrcdepsConstructor;
@@ -41,15 +37,6 @@ public class YamlConfigurationIo implements ConfigurationIo {
         Configuration.Builder builder = yaml.loadAs(in, Configuration.Builder.class);
         return builder.build();
 
-    }
-
-    public static void main(String[] args) throws IOException, ConfigurationException {
-        try (Reader in = new InputStreamReader(
-                new FileInputStream(new File("/home/ppalaga/git/srcdeps-maven-plugin-quickstart/.mvn/srcdeps.yaml")),
-                "utf-8")) {
-            Configuration result = new YamlConfigurationIo().read(in);
-            System.out.println(result);
-        }
     }
 
 }

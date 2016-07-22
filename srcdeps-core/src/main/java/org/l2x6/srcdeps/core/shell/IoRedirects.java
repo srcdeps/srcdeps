@@ -25,13 +25,38 @@ import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 /**
  * A triple of {@link Redirect}s to use when creating a new {@link Process}.
  * <p>
- * Note that {@link #err} can be {@code null} and that a {@code null} {@link #err} means that stdErr should be merged
+ * Note that {@link #stderr} can be {@code null} and that a {@code null} {@link #stderr} means that stdErr should be merged
  * with stdOut.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class IoRedirects {
 
+    public static class Builder {
+
+        private Redirect stderr = Redirect.INHERIT;
+        private Redirect stdin = Redirect.INHERIT;
+        private Redirect stdout = Redirect.INHERIT;
+
+        public IoRedirects build() {
+            return new IoRedirects(stdin, stdout, stderr);
+        }
+
+        public Builder stderr(Redirect stderr) {
+            this.stderr = stderr;
+            return this;
+        }
+
+        public Builder stdin(Redirect stdin) {
+            this.stdin = stdin;
+            return this;
+        }
+
+        public Builder stdout(Redirect stdout) {
+            this.stdout = stdout;
+            return this;
+        }
+    }
     /**
      * An enum of prefixes to use when encoding {@link Redirect}s as URI {@link String}s. See
      * {@link IoRedirects#parseUri(String)}.
@@ -43,6 +68,10 @@ public class IoRedirects {
 
     private static final IoRedirects INHERIT_ALL = new IoRedirects(Redirect.INHERIT, Redirect.INHERIT,
             Redirect.INHERIT);
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     /**
      * @return a {@link IoRedirects} singleton with all three {@link Redirect} fields set to {@link Redirect#INHERIT}.
@@ -110,20 +139,20 @@ public class IoRedirects {
         }
     }
 
-    private final Redirect err;
+    private final Redirect stderr;
 
-    private final Redirect in;
+    private final Redirect stdin;
 
-    private final Redirect out;
+    private final Redirect stdout;
 
     public IoRedirects(Redirect in, Redirect out, Redirect err) {
         super();
         SrcdepsCoreUtils.assertArgNotNull(in, "in");
         SrcdepsCoreUtils.assertArgNotNull(out, "out");
         // redirectError may be null see #isStdErrMergedWithStdOut()
-        this.in = in;
-        this.out = out;
-        this.err = err;
+        this.stdin = in;
+        this.stdout = out;
+        this.stderr = err;
     }
 
     @Override
@@ -135,20 +164,20 @@ public class IoRedirects {
         if (getClass() != obj.getClass())
             return false;
         IoRedirects other = (IoRedirects) obj;
-        if (err == null) {
-            if (other.err != null)
+        if (stderr == null) {
+            if (other.stderr != null)
                 return false;
-        } else if (!err.equals(other.err))
+        } else if (!stderr.equals(other.stderr))
             return false;
-        if (in == null) {
-            if (other.in != null)
+        if (stdin == null) {
+            if (other.stdin != null)
                 return false;
-        } else if (!in.equals(other.in))
+        } else if (!stdin.equals(other.stdin))
             return false;
-        if (out == null) {
-            if (other.out != null)
+        if (stdout == null) {
+            if (other.stdout != null)
                 return false;
-        } else if (!out.equals(other.out))
+        } else if (!stdout.equals(other.stdout))
             return false;
         return true;
     }
@@ -158,46 +187,46 @@ public class IoRedirects {
      * @throws IllegalStateException
      *             if {@link #isErr2Out()} returns {@code true}.
      */
-    public Redirect getErr() {
-        if (err == null) {
+    public Redirect getStderr() {
+        if (stderr == null) {
             throw new IllegalStateException("The error redirect was set to null in this " + IoRedirects.class.getName()
                     + " which means that stdErr should be merged with stdOut. Please check "
                     + IoRedirects.class.getSimpleName() + ".isStdErrMergedWithStdOut() before calling "
                     + IoRedirects.class.getSimpleName() + ".getError()");
         }
-        return err;
+        return stderr;
     }
 
     /**
      * @return the {@link Redirect} to use for stdIn
      */
-    public Redirect getIn() {
-        return in;
+    public Redirect getStdin() {
+        return stdin;
     }
 
     /**
      * @return the {@link Redirect} to use for stdOut
      */
-    public Redirect getOut() {
-        return out;
+    public Redirect getStdout() {
+        return stdout;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((err == null) ? 0 : err.hashCode());
-        result = prime * result + ((in == null) ? 0 : in.hashCode());
-        result = prime * result + ((out == null) ? 0 : out.hashCode());
+        result = prime * result + ((stderr == null) ? 0 : stderr.hashCode());
+        result = prime * result + ((stdin == null) ? 0 : stdin.hashCode());
+        result = prime * result + ((stdout == null) ? 0 : stdout.hashCode());
         return result;
     }
 
     /**
      * @return {@code true} if stdErr sould be merged with stdOut (this is the case when this {@link IoRedirects} was
-     *         created with a {@code null} {@link #err}); {@code false} otherwise.
+     *         created with a {@code null} {@link #stderr}); {@code false} otherwise.
      */
     public boolean isErr2Out() {
-        return err == null;
+        return stderr == null;
     }
 
 }

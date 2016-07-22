@@ -137,13 +137,13 @@ public class Shell {
         final IoRedirects redirects = command.getIoRedirects();
         ProcessBuilder builder = new ProcessBuilder(cmdArray) //
                 .directory(command.getWorkingDirectory().toFile()) //
-                .redirectInput(redirects.getIn()) //
-                .redirectOutput(redirects.getOut()) //
+                .redirectInput(redirects.getStdin()) //
+                .redirectOutput(redirects.getStdout()) //
         ;
         if (redirects.isErr2Out()) {
             builder.redirectErrorStream(redirects.isErr2Out());
         } else {
-            builder.redirectError(redirects.getErr());
+            builder.redirectError(redirects.getStderr());
         }
         Map<String, String> env = command.getEnvironment();
         if (!env.isEmpty()) {

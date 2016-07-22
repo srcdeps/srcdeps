@@ -14,27 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.srcdeps.core;
+package org.l2x6.srcdeps.config.yaml;
+
+import java.io.Reader;
+
+import org.l2x6.srcdeps.config.yaml.internal.SrcdepsConstructor;
+import org.l2x6.srcdeps.core.config.Configuration;
+import org.l2x6.srcdeps.core.config.ConfigurationException;
+import org.l2x6.srcdeps.core.config.ConfigurationIo;
+import org.yaml.snakeyaml.Yaml;
 
 /**
- * Thrown on any SCM related problems.
+ * Reads {@link Configuration} from a YAML file.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class ScmException extends BuildException {
+public class YamlConfigurationIo implements ConfigurationIo {
 
-    private static final long serialVersionUID = -1784759563206707275L;
+    @Override
+    public Configuration read(Reader in) throws ConfigurationException {
+        Yaml yaml = new Yaml(new SrcdepsConstructor());
+        Configuration.Builder builder = yaml.loadAs(in, Configuration.Builder.class);
+        return builder.build();
 
-    public ScmException(String message) {
-        super(message);
-    }
-
-    public ScmException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ScmException(Throwable cause) {
-        super(cause);
     }
 
 }

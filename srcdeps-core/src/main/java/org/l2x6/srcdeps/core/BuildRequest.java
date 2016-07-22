@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.l2x6.srcdeps.core.shell.IoRedirects;
 import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
@@ -55,6 +57,8 @@ public class BuildRequest {
         private SrcVersion srcVersion;
         private long timeoutMs = DEFAULT_TIMEOUT_MS;
         private Verbosity verbosity = Verbosity.info;
+        private boolean skipTests = true;
+        private Set<String> forwardProperties = new LinkedHashSet<>();
 
         /**
          * @param addDefaultBuildArguments
@@ -66,13 +70,19 @@ public class BuildRequest {
             return this;
         }
 
+        public BuildRequestBuilder skipTests(boolean skipTests) {
+            this.skipTests = skipTests;
+            return this;
+        }
+
         /**
          * @return a new {@link BuildRequest} based on the values stored in fields of this {@link BuildRequestBuilder}
          */
         public BuildRequest build() {
             return new BuildRequest(projectRootDirectory, srcVersion, Collections.unmodifiableList(scmUrls),
-                    Collections.unmodifiableList(buildArguments), addDefaultBuildArguments,
-                    Collections.unmodifiableMap(buildEnvironment), verbosity, ioRedirects, timeoutMs);
+                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments,
+                    Collections.unmodifiableSet(forwardProperties), Collections.unmodifiableMap(buildEnvironment),
+                    verbosity, ioRedirects, timeoutMs);
         }
 
         /**
@@ -202,6 +212,11 @@ public class BuildRequest {
             this.verbosity = verbosity;
             return this;
         }
+
+        public BuildRequestBuilder forwardProperties(Collection<String> values) {
+            forwardProperties.addAll(values);
+            return this;
+        }
     };
 
     /**
@@ -210,7 +225,7 @@ public class BuildRequest {
      * may map the levels listed here to a distinct set of levels they support internally.
      */
     public enum Verbosity {
-        trace, debug, info, warn, error;
+        debug, error, info, trace, warn;
 
         public static Verbosity fastValueOf(String level) {
             SrcdepsCoreUtils.assertArgNotNull(level, "Verbosity name");
@@ -248,13 +263,16 @@ public class BuildRequest {
     private final IoRedirects ioRedirects;
     private final Path projectRootDirectory;
     private final List<String> scmUrls;
+    private final boolean skipTests;
     private final SrcVersion srcVersion;
     private final long timeoutMs;
     private final Verbosity verbosity;
+    private final Set<String> forwardProperties;
 
     private BuildRequest(Path projectRootDirectory, SrcVersion srcVersion, List<String> scmUrls,
-            List<String> buildArguments, boolean addDefaultBuildArguments, Map<String, String> buildEnvironment,
-            Verbosity verbosity, IoRedirects ioRedirects, long timeoutMs) {
+            List<String> buildArguments, boolean skipTests, boolean addDefaultBuildArguments,
+            Set<String> forwardProperties, Map<String, String> buildEnvironment, Verbosity verbosity,
+            IoRedirects ioRedirects, long timeoutMs) {
         super();
 
         SrcdepsCoreUtils.assertArgNotNull(projectRootDirectory, "projectRootDirectory");
@@ -262,6 +280,7 @@ public class BuildRequest {
         SrcdepsCoreUtils.assertArgNotNull(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertCollectionNotEmpty(scmUrls, "scmUrls");
         SrcdepsCoreUtils.assertArgNotNull(buildArguments, "buildArguments");
+        SrcdepsCoreUtils.assertArgNotNull(forwardProperties, "forwardProperties");
         SrcdepsCoreUtils.assertArgNotNull(buildEnvironment, "buildEnvironment");
         SrcdepsCoreUtils.assertArgNotNull(ioRedirects, "ioRedirects");
 
@@ -269,10 +288,12 @@ public class BuildRequest {
         this.srcVersion = srcVersion;
         this.scmUrls = scmUrls;
         this.buildArguments = buildArguments;
+        this.skipTests = skipTests;
         this.buildEnvironment = buildEnvironment;
         this.verbosity = verbosity;
         this.timeoutMs = timeoutMs;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
+        this.forwardProperties = forwardProperties;
         this.ioRedirects = ioRedirects;
     }
 
@@ -349,12 +370,23 @@ public class BuildRequest {
         return addDefaultBuildArguments;
     }
 
+    public boolean isSkipTests() {
+        return skipTests;
+    }
+
     @Override
     public String toString() {
         return "BuildRequest [projectRootDirectory=" + projectRootDirectory + ", srcVersion=" + srcVersion
                 + ", scmUrls=" + scmUrls + ", buildArguments=" + buildArguments + ", addDefaultBuildArguments="
                 + addDefaultBuildArguments + ", buildEnvironment=" + buildEnvironment + ", verbosity=" + verbosity
                 + ", timeoutMs=" + timeoutMs + "]";
+    }
+
+    /**
+     * @return
+     */
+    public Set<String> getForwardProperties() {
+        return forwardProperties;
     }
 
 }

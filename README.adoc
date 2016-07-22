@@ -1,100 +1,100 @@
-= Srcdeps Maven Plugin
-
-A Maven plugin to build dependencies from their sources on the fly - a way to make a multi-component Java Project
-become more continuous, while staying with stock Maven and keeping components in separate git repositories.
-
-An intro presentation: http://ppalaga.github.io/presentations/150929-srcdeps-maven-plugin/150929-srcdeps-maven-plugin.html
+= Srcdeps
 
 ifdef::env-github[]
-[link=https://travis-ci.org/l2x6/srcdeps-maven-plugin]
-image:https://travis-ci.org/l2x6/srcdeps-maven-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/l2x6/srcdeps-maven-plugin"]
+[link=https://travis-ci.org/l2x6/srcdeps]
+image:https://travis-ci.org/l2x6/srcdeps.svg?branch=master["Build Status", link="https://travis-ci.org/l2x6/srcdeps-maven-plugin"]
 endif::[]
 
-== How to use Srcdeps Plugin
+A set of tools for building dependencies from their sources during the build.
+
+= What is this good for?
+
+Srcdeps alleviates some of the pains that arise from implementing Continuous Delivery in Maven projects. With srcdeps,
+a module can depend on a specific revision of another module. For instance, a module `web-banking-frontend` could
+depend on `account-balance-microservice` at git revision `abc123`, without requiring the
+`account-balance-microservice` to perform a complete Maven release.
+
+
+== Srcdeps support for Maven
+
+Currently, the srcdeps toolkit supports only Maven 3.3.1+, although the `srcdeps-core` library has an ambition to be
+generic enough so that a support for other Java build tools such as Gradle or sbt can be added (contributions are welcome!).
+
+The present solution for Maven is leveraging the concept of Maven Core Extensions introduced in Maven 3.3.1.
+In particular, we provide an implementation of `LocalRepositoryManager` that delegates all the usual artifact
+lookup work to the standard local repository manager available in Maven class path, but it is watching carefully,
+if the requested artifact contains `-SRC-` in its version string. For such ones, the `srcdeps-core` library is
+called, to build what is necessary and install it to the Maven local repository. In other words, the dependencies
+are built and installed while they are looked up.
+
+=== How to configure for Maven:
+
+==== 1. `.mvn/extensions.xml`
+
+`srcdeps-maven-local-repository` needs to be declared as a Maven Core Extension in `.mvn/extensions.xml` of the maven project.
 
 [source,xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<extensions>
+  <extension>
+    <groupId>org.l2x6.maven.srcdeps</groupId>
+    <artifactId>srcdeps-maven-local-repository</artifactId>
+    <version>0.0.12-SNAPSHOT</version>
+  </extension>
+</extensions>
+----
 
-  [...]
+==== 2. `.mvn/srcdeps.yaml`
 
-  <dependencies>
-    <dependency>
-      <groupId>org.l2x6.maven.srcdeps.itest</groupId>
-      <artifactId>srcdeps-test-artifact</artifactId>
-      <!-- -SRC- is the marker that makes Srcdeps Plugin to interpret the rest of the version
-           string as a scmVersionType, scmVersion pair. In this case scmVersionType is
-           "revision" and scmVersion is "66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b" - i.e.
-           the sha1 of the git commit we want to build as a dependency.
-           scmVersionType values are given by the SCM (Source Code Management) system in use.
-           For git, scmVersionType values are "revision", "tag" or "branch"
-      -->
-      <version>0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version>
-    </dependency>
-  </dependencies>
+A few settings have to be configured in `.mvn/srcdeps.yaml` file. Especially, the mapping from groupId's of
+dependencies to SCM repositiries where their sources reside. This is a minimal `.mvn/srcdeps.yaml` file. Please
+refer to link:srcdeps.yaml.adoc[srcdeps.yaml.adoc] for full reference.
 
-  <build>
-    <plugins>
-     [...]
-
-      <plugin>
-        <groupId>org.l2x6.maven.srcdeps</groupId>
-        <artifactId>srcdeps-maven-plugin</artifactId>
-        <version>0.0.1</version>
-        <extensions>true</extensions>
-        <configuration>
-          <repositories>
-            <repository>
-              <!-- a build tree unique id chosen by you -->
-              <id>org.hawkular.cmdgw</id>
-              <selectors>
-                <!-- groupId of the dependencies that come from this repo
-                     The syntax may change in the future,
-                     see https://github.com/l2x6/srcdeps-maven-plugin/issues/10 -->
-                <selector>org.hawkular.cmdgw</selector>
-              </selectors>
-              <!-- The url that is passed to checkout mojo of SCM Plugin,
-                   see https://maven.apache.org/scm/maven-scm-plugin/checkout-mojo.html -->
-              <url>scm:git:https://github.com/hawkular/hawkular-command-gateway.git</url>
-            </repository>
-          </repositories>
-        </configuration>
-      </plugin>
-
-    </plugins>
-  </build>
-
-  [...]
+[source,yaml]
+----
+configModelVersion: 1.0
+repositories:
+  hawkularCommons:
+    selectors:
+    - org.l2x6.maven.srcdeps.itest # if one of the selectors matches the groupId of a -SRC- dependency,
+                                   # then the urls will be used to build that dependency
+    urls:
+    - https://github.com/l2x6/srcdeps-test-artifact.git # If you list multiple SCM repos here
+                                                        # then the first successful checkout will count
 
 ----
 
-== Why to use Srcdeps Plugin
 
-The initiator of Srcdeps Plugin works on a project that consists of several components which have independent life cycles
-and are spread over separate git repositories. In a need for a fast (ideally continuous) integration of new component
-features, the team basically had two choices: either depend on SNAPSHOTs or release components very often. SNAPSHOTs
-make the builds non-reproducible and frequent releases would pollute both SCM history and Maven repos with releases
-that would be typically needed for just a short period of time.
+== How Srcdeps tools work
 
-The core of the idea of the plugin is that the components' maintainers actually do not need to release the components
-because they are not their deliverables. Deliverable is only the "product" that depends on them. If the component
-consumer projects were able to declare the dependencies using git revisions and build them on the fly, they could get
-rid of both SNAPSHOTS and releases. Srcdeps Maven Plugin does exactly that.
-
-== How does Srcdeps Plugin work
-
-* Srcdeps Plugin first collects dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
-* The it finds the URL of the SCM repository corresponding to the dependency groupId in the configuration of the plugin
-* It passes the URL, `{srcVersionType}` and `{srcVersion}` to the SCM Maven Plugin to check out the desired version
-  of the sources to `~/.m2/dependency-sources`
-* It changes the version in the sources to `{whatever}-SRC-{srcVersionType}-{srcVersion}` using Versions Maven
-  Plugin
-* And finally, Srcdeps Plugin builds the artifacts and installs them to the local Maven repository
-* All the above happens before the dependency resolution starts so it is fully transparent for the rest of Maven.
-* The -SRC- dependencies are build only if they are not found in local repository - so they prolong the build only
-  when upgrading.
+* Srcdeps tools are supposed to build dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
+* Any artifact having such a `-SRC-` version that is requested during the build needs to have an associated SCM
+  repository in the configuration. For Maven, the configuration is stored in `.mvn/srcdeps.yaml` of the dependent
+  project.
+* The URL of the associated SCM repository is used to fetch the sources of the dependency and checkout the desired revision.
+  For Maven the sources are cloned to `${maven.repo.local}/../srcdeps/${scmRepo.id}`
+* Then, `srcdeps-core` changes the version in the sources to `{whatever}-SRC-{srcVersionType}-{srcVersion}`
+  using Versions Maven Plugin
+* And finally, `srcdeps-core` builds the artifacts and installs them to the local Maven repository
+* For Maven, the `-SRC-` dependencies are build only if they are not found in local repository - so they prolong the
+  build only when upgrading.
 
 == Misc.
 
 * All code and contributions are under link:/LICENSE[Apache License]
 * Issues and Discussions are on GitHub: https://github.com/l2x6/srcdeps-maven-plugin/issues
 * Please contribute using GitHub Pull Requests
+
+
+=== Legacy note
+
+Originally, the present project provided a Maven plugin called `srcdeps-maven-plugin` that worked fairly well in most situations, but it turned out soon that the Maven Plugin API is not rich enough to allow for catching dependencies of
+all possible kinds. Most notably, the given project's parent pom and imports in `dependencyManagement` sections were
+resolved by Maven even before the plugin was initialized. Thus, if the given project's parent pom had a `-SRC-`
+version, the build failed with a missing artifact error message, simply because it happened before
+`srcdeps-maven-plugin` could do anything.
+
+An outdated presentation about the abandoned `srcdeps-maven-plugin`: http://ppalaga.github.io/presentations/150929-srcdeps-maven-plugin/150929-srcdeps-maven-plugin.html
+
+

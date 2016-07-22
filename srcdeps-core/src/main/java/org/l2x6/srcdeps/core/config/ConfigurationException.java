@@ -14,27 +14,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.l2x6.srcdeps.core;
+package org.l2x6.srcdeps.core.config;
 
 /**
- * Thrown on any SCM related problems.
+ * Thrown on any configuration related problems.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
-public class ScmException extends BuildException {
+public class ConfigurationException extends Exception {
 
-    private static final long serialVersionUID = -1784759563206707275L;
+    /**  */
+    private static final long serialVersionUID = 3990924934086850806L;
 
-    public ScmException(String message) {
-        super(message);
-    }
-
-    public ScmException(String message, Throwable cause) {
+    public ConfigurationException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ScmException(Throwable cause) {
+    public ConfigurationException(String message) {
+        super(message);
+    }
+
+    public ConfigurationException(Throwable cause) {
         super(cause);
     }
+
 
 }

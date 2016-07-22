@@ -33,12 +33,12 @@ import org.l2x6.srcdeps.core.shell.ShellCommand;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public abstract class AbstractMvnBuilder extends ShellBuilder {
-    public static final List<String> mvnDefaultArgs = Collections
-            .unmodifiableList(Arrays.asList("clean", "install", "-DskipTests"));
-
+    public static final List<String> mvnDefaultArgs = Collections.unmodifiableList(Arrays.asList("clean", "install"));
     public static final List<String> mvnwFileNames = Collections.unmodifiableList(Arrays.asList("mvnw", "mvnw.cmd"));
+
     public static final List<String> pomFileNames = Collections.unmodifiableList(
             Arrays.asList("pom.xml", "pom.atom", "pom.clj", "pom.groovy", "pom.rb", "pom.scala", "pom.yml"));
+    public static final List<String> skipTestsArgs = Collections.singletonList("-DskipTests");
 
     public static boolean hasMvnwFile(Path directory) {
         for (String fileName : mvnwFileNames) {
@@ -65,6 +65,11 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     @Override
     protected List<String> getDefaultBuildArguments() {
         return mvnDefaultArgs;
+    }
+
+    @Override
+    protected List<String> getSkipTestsArguments(boolean skipTests) {
+        return skipTests ? skipTestsArgs : Collections.<String> emptyList();
     }
 
     @Override

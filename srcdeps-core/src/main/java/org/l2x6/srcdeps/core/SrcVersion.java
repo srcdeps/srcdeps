@@ -36,6 +36,10 @@ public class SrcVersion {
     public static final char SRC_VERSION_DELIMITER = '-';
     public static final String SRC_VERSION_INFIX = "-SRC-";
 
+    public static boolean isSrcVersion(String rawVersion) {
+        return rawVersion.indexOf(SRC_VERSION_INFIX) >= 0;
+    }
+
     /**
      * @param rawVersion
      *            the string to parse

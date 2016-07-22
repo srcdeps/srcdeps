@@ -75,7 +75,7 @@
 
   <properties>
 
-        <!-- dependencies -->
+    <!-- dependencies -->
 
     <version.org.apache.maven>3.3.9</version.org.apache.maven>
         <!-- com.google.inject alias guice
@@ -126,18 +126,17 @@
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.directory-maven-plugin>0.1</version.directory-maven-plugin>
 
-
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- maven-compiler-plugin -->
+    <!-- maven-compiler-plugin -->
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
 
-        <!-- Checkstyle and maven-checkstyle-plugin -->
+    <!-- Checkstyle and maven-checkstyle-plugin -->
     <version.com.puppycrawl.tools.checkstyle>6.8</version.com.puppycrawl.tools.checkstyle>
-        <!-- checkstyle.xml location in the source tree -->
+    <!-- checkstyle.xml location in the source tree -->
     <checkstyle.consoleOutput>true</checkstyle.consoleOutput>
     <checkstyle.failOnError>true</checkstyle.failOnError>
     <checkstyle.includes>
@@ -467,6 +466,8 @@
             <exclude>**/LICENSE.*</exclude>
             <exclude>**/*.html</exclude>
             <exclude>**/*.htm</exclude>
+            <exclude>mvnw</exclude>
+            <exclude>mvnw.cmd</exclude>
           </excludes>
           <mapping>
             <yaml>SCRIPT_STYLE</yaml>

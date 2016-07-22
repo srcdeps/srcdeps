@@ -21,9 +21,11 @@ import java.lang.ProcessBuilder.Redirect;
 import org.l2x6.srcdeps.core.shell.IoRedirects;
 
 /**
- * A triple of definitions how to handle the three standard I/O steams of a process.
+ * A triple of definitions how to handle the three standard I/O steams of a process. The syntax of the definitions
+ * mostly follows the semantics of {@link java.lang.ProcessBuilder.Redirect}.
  *
  * @see IoRedirects
+ * @see IoRedirects#parseUri(String)
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class BuilderIo {

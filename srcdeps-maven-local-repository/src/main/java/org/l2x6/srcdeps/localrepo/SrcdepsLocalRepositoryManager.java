@@ -97,8 +97,8 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
         }
 
         /**
-         * Finds the {@link ScmRepository} associated with the given {@code artifact}. The association is given by the
-         * exact string match between the groupId of the {@code artifact} and one of the
+         * Finds the first {@link ScmRepository} associated with the given {@code artifact}. The association is given by
+         * the exact string match between the groupId of the {@code artifact} and one of the
          * {@link ScmRepository#getSelectors() selectors} of {@link ScmRepository}
          *
          * @param artifact
@@ -192,38 +192,41 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
         if (!result.isAvailable() && SrcVersion.isSrcVersion(version)) {
             Configuration config = configuration.getConfiguration();
 
-            ScmRepository scmRepo = configuration.findScmRepo(artifact);
-            Path projectBuildDir = scrdepsDir.resolve(scmRepo.getId());
+            if (!config.isSkip()) {
+                ScmRepository scmRepo = configuration.findScmRepo(artifact);
+                Path projectBuildDir = scrdepsDir.resolve(scmRepo.getId());
 
-            BuilderIo builderIo = config.getBuilderIo();
-            IoRedirects ioRedirects = IoRedirects.builder() //
-                    .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
-                    .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
-                    .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
-                    .build();
-            BuildRequest buildRequest = BuildRequest.builder() //
-                    .projectRootDirectory(projectBuildDir) //
-                    .scmUrls(scmRepo.getUrls()) //
-                    .srcVersion(SrcVersion.parse(version)) //
-                    .buildArguments(scmRepo.getBuildArguments()) //
-                    .skipTests(scmRepo.isSkipTests())
-                    .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments())
-                    .verbosity(config.getVerbosity()) //
-                    .ioRedirects(ioRedirects) //
-                    .build();
-            try {
-                buildService.build(buildRequest);
+                BuilderIo builderIo = config.getBuilderIo();
+                IoRedirects ioRedirects = IoRedirects.builder() //
+                        .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
+                        .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
+                        .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
+                        .build();
 
-                /* check once again if the delegate sees the newly built artifact */
-                final LocalArtifactResult newResult = delegate.find(session, request);
-                if (!newResult.isAvailable()) {
-                    log.error(
-                            "Srcdeps build succeeded but the artifact {} is still not available in the local repository",
-                            artifact);
+                BuildRequest buildRequest = BuildRequest.builder() //
+                        .projectRootDirectory(projectBuildDir) //
+                        .scmUrls(scmRepo.getUrls()) //
+                        .srcVersion(SrcVersion.parse(version)) //
+                        .buildArguments(scmRepo.getBuildArguments()) //
+                        .skipTests(scmRepo.isSkipTests()).forwardProperties(config.getForwardProperties())
+                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()).verbosity(config.getVerbosity()) //
+                        .ioRedirects(ioRedirects) //
+                        .build();
+                try {
+                    buildService.build(buildRequest);
+
+                    /* check once again if the delegate sees the newly built artifact */
+                    final LocalArtifactResult newResult = delegate.find(session, request);
+                    if (!newResult.isAvailable()) {
+                        log.error(
+                                "Srcdeps build succeeded but the artifact {} is still not available in the local repository",
+                                artifact);
+                    }
+                } catch (BuildException e) {
+                    log.error("Srcdeps could not build " + request, e);
                 }
-            } catch (BuildException e) {
-                log.error("Srcdeps could not build " + request, e);
             }
+
         }
 
         return result;

@@ -460,6 +460,7 @@
         <configuration>
           <header>${srcdeps-parent.basedir}/license-header-template.txt</header>
           <excludes>
+            <exclude>**/*.adoc</exclude>
             <exclude>**/README</exclude>
             <exclude>**/README.*</exclude>
             <exclude>**/license-header-template.txt</exclude>

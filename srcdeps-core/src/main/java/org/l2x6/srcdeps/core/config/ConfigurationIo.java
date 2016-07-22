@@ -24,5 +24,12 @@ import java.io.Reader;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public interface ConfigurationIo {
+    /**
+     * Read the {@link Configuration} from the given stream.
+     *
+     * @param reader the stream to read from
+     * @return {@link Configuration} read from the given stream.
+     * @throws ConfigurationException on configuration consistency checks
+     */
     Configuration read(Reader reader) throws ConfigurationException;
 }

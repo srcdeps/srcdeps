@@ -18,6 +18,7 @@ package org.l2x6.srcdeps.core.impl.builder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.l2x6.srcdeps.core.BuildException;
 import org.l2x6.srcdeps.core.BuildRequest;
@@ -46,30 +47,61 @@ public abstract class ShellBuilder implements Builder {
 
     @Override
     public void build(BuildRequest request) throws BuildException {
-        List<String> args = mergedBuildArguments(request, getDefaultBuildArguments(),
-                getVerbosityArguments(request.getVerbosity()), getSkipTestsArguments(request.isSkipTests()));
+
+        List<String> args = mergeArguments(request);
         ShellCommand command = new ShellCommand(executable, args, request.getProjectRootDirectory(),
                 request.getBuildEnvironment(), request.getIoRedirects(), request.getTimeoutMs());
         Shell.execute(command).assertSuccess();
     }
 
-    public static List<String> mergedBuildArguments(BuildRequest request, List<String> defaultArguments,
-            List<String> verbosityArguments, List<String> skipTestsArguments) {
-        List<String> result = new ArrayList<>();
-        if (request.isAddDefaultBuildArguments()) {
-            result.addAll(defaultArguments);
-        }
-        result.addAll(request.getBuildArguments());
-        result.addAll(verbosityArguments);
-        result.addAll(skipTestsArguments);
+    protected abstract List<String> getDefaultBuildArguments();
 
+    protected List<String> getForwardPropertiesArguments(Set<String> fwdPropNames) {
+        List<String> result = new ArrayList<>();
+        StringBuilder names = new StringBuilder();
+        for (String propName : fwdPropNames) {
+            if (names.length() > 0) {
+                names.append(',');
+            }
+            names.append(propName);
+
+            if (propName.endsWith("*")) {
+                /* prefix */
+                String prefix = propName.substring(propName.length() - 1);
+                for (Object key : System.getProperties().keySet()) {
+                    if (key instanceof String && ((String) key).startsWith(prefix)) {
+                        String value = System.getProperty((String) key);
+                        if (value != null) {
+                            result.add("-D"+ propName +"="+ value);
+                        }
+                    }
+                }
+            } else {
+                String value = System.getProperty(propName);
+                if (value != null) {
+                    result.add("-D"+ propName +"="+ value);
+                }
+            }
+        }
+
+        result.add("-Dsrcdeps.forwardProperties=" + names.toString());
         return result;
     }
 
-    protected abstract List<String> getDefaultBuildArguments();
+    protected abstract List<String> getSkipTestsArguments(boolean skipTests);
 
     protected abstract List<String> getVerbosityArguments(Verbosity verbosity);
 
-    protected abstract List<String> getSkipTestsArguments(boolean skipTests);
+    protected List<String> mergeArguments(BuildRequest request) {
+        List<String> result = new ArrayList<>();
+        if (request.isAddDefaultBuildArguments()) {
+            result.addAll(getDefaultBuildArguments());
+        }
+        result.addAll(request.getBuildArguments());
+        result.addAll(getVerbosityArguments(request.getVerbosity()));
+        result.addAll(getSkipTestsArguments(request.isSkipTests()));
+        result.addAll(getForwardPropertiesArguments(request.getForwardProperties()));
+        return result;
+    }
 
 }

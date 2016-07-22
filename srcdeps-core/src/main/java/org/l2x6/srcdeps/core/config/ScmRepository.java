@@ -101,22 +101,51 @@ public class ScmRepository {
         return buildArguments;
     }
 
+    /**
+     * @return an identifier of this {@link ScmRepository}. Only {@code [a-zA-Z0-9_]} characters are allowed.
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns a {@link List} of selectors to map dependency artifacts to source repositories. ATM, the association is
+     * given by the exact string match between the {@code groupId} of the dependency artifact and one of the selectors
+     * listed here.
+     *
+     * @return a {@link List} of selectors
+     */
     public List<String> getSelectors() {
         return selectors;
     }
 
+    /**
+     * Returns a {@link List} of SCM URLs to checkout the sources of the given dependency. If multiple SCM repos are
+     * returned then only the first successful checkout should count.
+     *
+     * @return a {@link List} of SCM URLs to checkout the sources of the given dependency
+     */
     public Collection<String> getUrls() {
         return urls;
     }
 
+    /**
+     * If {@code true} the build tool's default arguments will be used when building a dependency. Otherwise, no default
+     * build arguments will be used. The default build arguments are build tool specific. For Maven, the default build
+     * arguments are defined in {@link org.l2x6.srcdeps.core.impl.builder.AbstractMvnBuilder#mvnDefaultArgs}.
+     *
+     * @return {@code true} or {@code false}
+     */
     public boolean isAddDefaultBuildArguments() {
         return addDefaultBuildArguments;
     }
 
+    /**
+     * If {@code true} no tests will be run when building a dependency. For dependencies built with Maven, this accounts
+     * to adding {@code -DskipTests} to the {@code mvn} arguments.
+     *
+     * @return {@code true} or {@code false}
+     */
     public boolean isSkipTests() {
         return skipTests;
     }

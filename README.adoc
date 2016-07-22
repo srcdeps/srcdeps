@@ -1,15 +1,18 @@
 = Srcdeps
 
 ifdef::env-github[]
-[link=https://travis-ci.org/l2x6/srcdeps-maven-plugin]
-image:https://travis-ci.org/l2x6/srcdeps-maven-plugin.svg?branch=master["Build Status", link="https://travis-ci.org/l2x6/srcdeps-maven-plugin"]
+[link=https://travis-ci.org/l2x6/srcdeps]
+image:https://travis-ci.org/l2x6/srcdeps.svg?branch=master["Build Status", link="https://travis-ci.org/l2x6/srcdeps-maven-plugin"]
 endif::[]
 
 A set of tools for building dependencies from their sources during the build.
 
 = What is this good for?
 
-Srcdeps alleviates some of the pains that comes from achieving Continuous Delivery for Maven projects. With srcdeps, a module can depend on a specific revision of another module. For instance, a module `web-banking-frontend` could depend on `account-balance-microservice` at git revision `abc123`, without requiring the `account-balance-microservice` to perform a complete Maven release.
+Srcdeps alleviates some of the pains that arise from implementing Continuous Delivery in Maven projects. With srcdeps,
+a module can depend on a specific revision of another module. For instance, a module `web-banking-frontend` could
+depend on `account-balance-microservice` at git revision `abc123`, without requiring the
+`account-balance-microservice` to perform a complete Maven release.
 
 
 == Srcdeps support for Maven
@@ -46,7 +49,7 @@ are built and installed while they are looked up.
 
 A few settings have to be configured in `.mvn/srcdeps.yaml` file. Especially, the mapping from groupId's of
 dependencies to SCM repositiries where their sources reside. This is a minimal `.mvn/srcdeps.yaml` file. Please
-refer to srcdeps.yaml.adoc for full reference.
+refer to link:srcdeps.yaml.adoc[srcdeps.yaml.adoc] for full reference.
 
 [source,yaml]
 ----

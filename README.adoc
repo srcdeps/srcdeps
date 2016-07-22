@@ -55,7 +55,7 @@ refer to link:srcdeps.yaml.adoc[srcdeps.yaml.adoc] for full reference.
 ----
 configModelVersion: 1.0
 repositories:
-  hawkularCommons:
+  srcdepsItestRepo:
     selectors:
     - org.l2x6.maven.srcdeps.itest # if one of the selectors matches the groupId of a -SRC- dependency,
                                    # then the urls will be used to build that dependency
@@ -70,8 +70,8 @@ repositories:
 
 * Srcdeps tools are supposed to build dependencies with versions matching `{whatever}-SRC-{srcVersionType}-{srcVersion}`
 * Any artifact having such a `-SRC-` version that is requested during the build needs to have an associated SCM
-  repository in the configuration. For Maven, the configuration is stored in `.mvn/srcdeps.yaml` of the dependent
-  project.
+  repository in the configuration. For Maven, the configuration is stored in `.mvn/srcdeps.yaml` under the top level
+  directory of the project.
 * The URL of the associated SCM repository is used to fetch the sources of the dependency and checkout the desired revision.
   For Maven the sources are cloned to `${maven.repo.local}/../srcdeps/${scmRepo.id}`
 * Then, `srcdeps-core` changes the version in the sources to `{whatever}-SRC-{srcVersionType}-{srcVersion}`

@@ -17,6 +17,7 @@
 package org.l2x6.srcdeps.core.impl.builder;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 import org.l2x6.srcdeps.core.BuildException;
 import org.l2x6.srcdeps.core.BuildRequest;
 import org.l2x6.srcdeps.core.BuildRequest.Verbosity;
+import org.l2x6.srcdeps.core.config.Configuration;
 import org.l2x6.srcdeps.core.shell.Shell;
 import org.l2x6.srcdeps.core.shell.ShellCommand;
 
@@ -64,7 +66,16 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
 
     @Override
     protected List<String> getDefaultBuildArguments() {
-        return mvnDefaultArgs;
+        String settingsPath = System.getProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP);
+        if (settingsPath != null) {
+            List<String> result = new ArrayList<>(mvnDefaultArgs.size() + 2);
+            result.addAll(mvnDefaultArgs);
+            result.add("-s");
+            result.add(settingsPath);
+            return Collections.unmodifiableList(result);
+        } else {
+            return mvnDefaultArgs;
+        }
     }
 
     @Override

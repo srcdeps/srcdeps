@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.l2x6.srcdeps.core.config.Configuration;
 import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class BuildServiceTest extends InjectedTest {
     private static final Logger log = LoggerFactory.getLogger(BuildServiceTest.class);
     private static final Path mvnLocalRepo;
+    private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
     private static final Path projectsDirectory;
     private static final Path targetDirectory = Paths.get(System.getProperty("project.build.directory", "target"))
             .toAbsolutePath();
@@ -71,6 +73,8 @@ public class BuildServiceTest extends InjectedTest {
 
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo);
         Files.createDirectories(mvnLocalRepo);
+
+        System.setProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP, mrmSettingsXmlPath);
 
     }
 

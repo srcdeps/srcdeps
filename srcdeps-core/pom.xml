@@ -77,15 +77,44 @@
 
   <build>
     <plugins>
+
+      <!-- To speed up the tests, we use the mrm-maven-plugin to proxy the local Maven repo of the main build so that
+           the test child build does not have to download all the dependencies from the Central. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>mrm-maven-plugin</artifactId>
+        <configuration>
+          <port>42704</port><!-- keep in sync with src/test/resources/settings-mrm.xml -->"
+        </configuration>
+        <executions>
+          <execution>
+            <id>mrm-start</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>mrm-stop</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemProperties>
             <project.build.directory>${project.build.directory}</project.build.directory>
+            <mrm.settings.xml>${basedir}/src/test/resources/settings-mrm.xml</mrm.settings.xml>
           </systemProperties>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.eclipse.sisu</groupId>
         <artifactId>sisu-maven-plugin</artifactId>

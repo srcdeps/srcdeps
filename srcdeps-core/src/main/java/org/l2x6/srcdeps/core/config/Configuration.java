@@ -19,6 +19,7 @@ package org.l2x6.srcdeps.core.config;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +33,10 @@ import org.l2x6.srcdeps.core.BuildRequest.Verbosity;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class Configuration {
-    public static String CONFIG_MODEL_VERSION = "1.0";
-
     public static class Builder {
 
-        private Set<String> forwardProperties = new LinkedHashSet<>();
         private BuilderIo builderIo;
+        private Set<String> forwardProperties = new LinkedHashSet<>(defaultForwardProperties);
         private List<ScmRepository> repositories = new ArrayList<>();
         private boolean skip = false;
         private Path sourcesDirectory;
@@ -52,8 +51,16 @@ public class Configuration {
                     forwardProperties);
         }
 
-        public Builder forwardProperty(String value) {
-            forwardProperties.add(value);
+        public Builder builderIo(BuilderIo.Builder builderIo) {
+            this.builderIo = builderIo.build();
+            return this;
+        }
+
+        public Builder configModelVersion(String configModelVersion) {
+            if (!CONFIG_MODEL_VERSION.equals(configModelVersion)) {
+                throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected [%s]",
+                        configModelVersion, CONFIG_MODEL_VERSION));
+            }
             return this;
         }
 
@@ -62,8 +69,17 @@ public class Configuration {
             return this;
         }
 
-        public Builder builderIo(BuilderIo.Builder builderIo) {
-            this.builderIo = builderIo.build();
+        public Builder forwardProperty(String value) {
+            forwardProperties.add(value);
+            return this;
+        }
+
+        public Builder repositories(Map<String, ScmRepository.Builder> repoBuilders) {
+            for (Map.Entry<String, ScmRepository.Builder> en : repoBuilders.entrySet()) {
+                ScmRepository.Builder repoBuilder = en.getValue();
+                repoBuilder.id(en.getKey());
+                this.repositories.add(repoBuilder.build());
+            }
             return this;
         }
 
@@ -82,30 +98,22 @@ public class Configuration {
             return this;
         }
 
-        public Builder repositories(Map<String, ScmRepository.Builder> repoBuilders) {
-            for (Map.Entry<String, ScmRepository.Builder> en : repoBuilders.entrySet()) {
-                ScmRepository.Builder repoBuilder = en.getValue();
-                repoBuilder.id(en.getKey());
-                this.repositories.add(repoBuilder.build());
-            }
-            return this;
-        }
-
-        public Builder configModelVersion(String configModelVersion) {
-            if (!CONFIG_MODEL_VERSION.equals(configModelVersion)) {
-                throw new IllegalArgumentException(String.format("Cannot parse configModelVersion [%s]; expected [%s]",
-                        configModelVersion, CONFIG_MODEL_VERSION));
-            }
-            return this;
-        }
-
     }
+    public static final String CONFIG_MODEL_VERSION = "1.0";
 
-    private final Set<String> forwardProperties;
+    public static final List<String> defaultForwardProperties = Collections.singletonList("srcdeps.mvn.*");
+
+    public static final String SRCDEPS_MVN_SETTINGS_PROP = "srcdeps.mvn.settings";
+
+    public static Builder builder() {
+        return new Builder();
+    }
     private final BuilderIo builderIo;
+    private final Set<String> forwardProperties;
     private final List<ScmRepository> repositories;
     private final boolean skip;
     private final Path sourcesDirectory;
+
     private final Verbosity verbosity;
 
     private Configuration(List<ScmRepository> repositories, Path sourcesDirectory, boolean skip,
@@ -119,8 +127,11 @@ public class Configuration {
         this.builderIo = redirects;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    /**
+     * @return a {@link BuilderIo} to use for the child builders
+     */
+    public BuilderIo getBuilderIo() {
+        return builderIo;
     }
 
     /**
@@ -137,13 +148,6 @@ public class Configuration {
      */
     public Set<String> getForwardProperties() {
         return forwardProperties;
-    }
-
-    /**
-     * @return a {@link BuilderIo} to use for the child builders
-     */
-    public BuilderIo getBuilderIo() {
-        return builderIo;
     }
 
     /**

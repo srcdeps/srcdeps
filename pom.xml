@@ -78,28 +78,29 @@
     <!-- dependencies -->
 
     <version.org.apache.maven>3.3.9</version.org.apache.maven>
-        <!-- com.google.inject alias guice
-             keep in sync with guiceVersion in maven
-             around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
+    <!-- com.google.inject alias guice
+         keep in sync with guiceVersion in maven
+         around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.com.google.inject>4.0</version.com.google.inject>
-        <!-- keep in sync with aetherVersion in maven
-             around https://github.com/apache/maven/blob/master/pom.xml#L67 -->
+    <!-- keep in sync with aetherVersion in maven
+         around https://github.com/apache/maven/blob/master/pom.xml#L67 -->
     <version.org.eclipse.aether>1.0.2.v20150114</version.org.eclipse.aether>
-        <!-- keep in sync with sisuInjectVersion in maven
-             around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
+    <!-- keep in sync with sisuInjectVersion in maven
+         around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
     <version.org.eclipse.jgit>4.1.0.201509280440-r</version.org.eclipse.jgit>
     <version.junit>4.12</version.junit>
     <version.org.slf4j>1.7.5</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
 
-        <!--
-          Maven plugin versions
-            Naming convention: version.${artifactId} whenever unique enough; otherwise version.${groupId}.${artifactId}
-            Ordering: alphabetic
-        -->
+    <!--
+      Maven plugin versions
+        Naming convention: version.${artifactId} whenever unique enough; otherwise version.${groupId}.${artifactId}
+        Ordering: alphabetic
+    -->
     <version.com.mycila.license-maven-plugin>2.11</version.com.mycila.license-maven-plugin>
     <version.exec-maven-plugin>1.3.2</version.exec-maven-plugin>
+    <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
     <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>
     <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>
     <version.maven-clean-plugin>2.6</version.maven-clean-plugin>
@@ -146,22 +147,22 @@
       target/**
     </checkstyle.excludes>
 
-        <!-- license-maven-plugin -->
+    <!-- license-maven-plugin -->
     <license.failIfMissing>true</license.failIfMissing>
     <license.failIfUnknown>true</license.failIfUnknown>
 
-        <!-- -Xdoclint:none disables javadoc validation -->
+    <!-- -Xdoclint:none disables javadoc validation -->
     <javadoc.doclint>-Xdoclint:none</javadoc.doclint>
 
-        <!-- nexus-staging-maven-plugin -->
+    <!-- nexus-staging-maven-plugin -->
     <autoReleaseAfterClose>true</autoReleaseAfterClose>
 
-        <!-- Repository Deployment URLs -->
+    <!-- Repository Deployment URLs -->
     <oss.nexus.base.url>https://oss.sonatype.org</oss.nexus.base.url>
     <releases.repo.url>${oss.nexus.base.url}/service/local/staging/deploy/maven2/</releases.repo.url>
     <snapshots.repo.url>${oss.nexus.base.url}/content/repositories/snapshots/</snapshots.repo.url>
 
-        <!-- maven-surefire-plugin -->
+    <!-- maven-surefire-plugin -->
     <surefire.useFile>false</surefire.useFile>
     <trimStackTrace>false</trimStackTrace>
 
@@ -258,7 +259,7 @@
   <build>
     <pluginManagement>
       <plugins>
-            <!-- Ordering: alphabetic by groupId and artifactId -->
+        <!-- Ordering: alphabetic by groupId and artifactId -->
 
         <plugin>
           <groupId>com.mycila</groupId>
@@ -419,6 +420,12 @@
         </plugin>
 
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>mrm-maven-plugin</artifactId>
+          <version>${version.mrm-maven-plugin}</version>
+        </plugin>
+
+        <plugin>
           <groupId>org.codehaus.gmavenplus</groupId>
           <artifactId>gmavenplus-plugin</artifactId>
           <version>${version.org.codehaus.gmavenplus.gmavenplus-plugin}</version>
@@ -451,7 +458,7 @@
       </plugins>
     </pluginManagement>
     <plugins>
-        <!-- Ordering: same as pluginManagement - alphabetic by the version property -->
+      <!-- Ordering: same as pluginManagement - alphabetic by the version property -->
 
       <plugin>
         <groupId>com.mycila</groupId>
@@ -533,7 +540,7 @@
           <optimize>true</optimize>
           <debug>true</debug>
           <showDeprecation>true</showDeprecation>
-                    <!-- Workaround for https://jira.codehaus.org/browse/MCOMPILER-236 present in compiler plugin 3.2 -->
+          <!-- Workaround for https://jira.codehaus.org/browse/MCOMPILER-236 present in compiler plugin 3.2 -->
           <useIncrementalCompilation>false</useIncrementalCompilation>
         </configuration>
       </plugin>
@@ -586,7 +593,7 @@
         <extensions>true</extensions>
         <configuration>
           <nexusUrl>${oss.nexus.base.url}</nexusUrl>
-                    <!-- The server "id" element from settings to use authentication from -->
+          <!-- The server "id" element from settings to use authentication from -->
           <serverId>ossrh-repository</serverId>
         </configuration>
       </plugin>
@@ -655,7 +662,7 @@
     <profile>
       <id>release</id>
       <properties>
-                <!-- This makes the buildnumber-maven-plugin fail in case of uncommitted local changes -->
+        <!-- This makes the buildnumber-maven-plugin fail in case of uncommitted local changes -->
         <maven.buildNumber.doCheck>true</maven.buildNumber.doCheck>
       </properties>
       <build>

@@ -82,7 +82,7 @@ repositories:
 
 == Misc.
 
-* All code and contributions are under link:/LICENSE[Apache License]
+* All code and contributions are under link:/LICENSE.txt[Apache License]
 * Issues and Discussions are on GitHub: https://github.com/l2x6/srcdeps-maven-plugin/issues
 * Please contribute using GitHub Pull Requests
 

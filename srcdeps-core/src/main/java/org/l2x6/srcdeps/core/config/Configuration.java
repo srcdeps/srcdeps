@@ -35,7 +35,7 @@ import org.l2x6.srcdeps.core.BuildRequest.Verbosity;
 public class Configuration {
     public static class Builder {
 
-        private BuilderIo builderIo;
+        private BuilderIo builderIo = BuilderIo.inheritAll();
         private Set<String> forwardProperties = new LinkedHashSet<>(defaultForwardProperties);
         private List<ScmRepository> repositories = new ArrayList<>();
         private boolean skip = false;
@@ -83,6 +83,11 @@ public class Configuration {
             return this;
         }
 
+        public Builder repository(ScmRepository repo) {
+            this.repositories.add(repo);
+            return this;
+        }
+
         public Builder skip(boolean value) {
             this.skip = value;
             return this;
@@ -125,6 +130,42 @@ public class Configuration {
         this.verbosity = verbosity;
         this.forwardProperties = forwardProperties;
         this.builderIo = redirects;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Configuration other = (Configuration) obj;
+        if (builderIo == null) {
+            if (other.builderIo != null)
+                return false;
+        } else if (!builderIo.equals(other.builderIo))
+            return false;
+        if (forwardProperties == null) {
+            if (other.forwardProperties != null)
+                return false;
+        } else if (!forwardProperties.equals(other.forwardProperties))
+            return false;
+        if (repositories == null) {
+            if (other.repositories != null)
+                return false;
+        } else if (!repositories.equals(other.repositories))
+            return false;
+        if (skip != other.skip)
+            return false;
+        if (sourcesDirectory == null) {
+            if (other.sourcesDirectory != null)
+                return false;
+        } else if (!sourcesDirectory.equals(other.sourcesDirectory))
+            return false;
+        if (verbosity != other.verbosity)
+            return false;
+        return true;
     }
 
     /**
@@ -176,6 +217,19 @@ public class Configuration {
      */
     public Verbosity getVerbosity() {
         return verbosity;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((builderIo == null) ? 0 : builderIo.hashCode());
+        result = prime * result + ((forwardProperties == null) ? 0 : forwardProperties.hashCode());
+        result = prime * result + ((repositories == null) ? 0 : repositories.hashCode());
+        result = prime * result + (skip ? 1231 : 1237);
+        result = prime * result + ((sourcesDirectory == null) ? 0 : sourcesDirectory.hashCode());
+        result = prime * result + ((verbosity == null) ? 0 : verbosity.hashCode());
+        return result;
     }
 
     /**

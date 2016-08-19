@@ -30,19 +30,29 @@
   <artifactId>srcdeps-config-yaml</artifactId>
 
   <dependencies>
+
     <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.l2x6.srcdeps</groupId>
       <artifactId>srcdeps-core</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
     </dependency>
+
   </dependencies>
 
 </project>

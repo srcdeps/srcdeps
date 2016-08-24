@@ -57,8 +57,8 @@ sourcesDirectory: ~/.m2/srcdeps
 #
 # Possible values: error, warn, info, debug, trace
 #
-# Optional, default: info
-verbosity: info
+# Optional, default: warn
+verbosity: warn
 
 
 # `repositories` A map of SCM repositories.

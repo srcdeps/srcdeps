@@ -70,6 +70,10 @@ public class BuilderIo {
     public static final BuilderIo INHERIT_ALL = new BuilderIo(BuilderIoScheme.inherit.name(),
             BuilderIoScheme.inherit.name(), BuilderIoScheme.inherit.name());
 
+    public static final Builder builder() {
+        return new Builder();
+    }
+
     public static final BuilderIo inheritAll() {
         return INHERIT_ALL;
     }
@@ -85,6 +89,33 @@ public class BuilderIo {
         this.stdin = in;
         this.stdout = out;
         this.stderr = err;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        BuilderIo other = (BuilderIo) obj;
+        if (stderr == null) {
+            if (other.stderr != null)
+                return false;
+        } else if (!stderr.equals(other.stderr))
+            return false;
+        if (stdin == null) {
+            if (other.stdin != null)
+                return false;
+        } else if (!stdin.equals(other.stdin))
+            return false;
+        if (stdout == null) {
+            if (other.stdout != null)
+                return false;
+        } else if (!stdout.equals(other.stdout))
+            return false;
+        return true;
     }
 
     /*
@@ -112,6 +143,16 @@ public class BuilderIo {
      */
     public String getStdout() {
         return stdout;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((stderr == null) ? 0 : stderr.hashCode());
+        result = prime * result + ((stdin == null) ? 0 : stdin.hashCode());
+        result = prime * result + ((stdout == null) ? 0 : stdout.hashCode());
+        return result;
     }
 
     @Override

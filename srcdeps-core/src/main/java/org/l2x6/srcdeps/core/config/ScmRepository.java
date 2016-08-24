@@ -17,10 +17,10 @@
 package org.l2x6.srcdeps.core.config;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
+
+import org.l2x6.srcdeps.core.config.Configuration.Builder;
 
 /**
  * A SCM repository entry of a {@link Configuration}.
@@ -31,25 +31,34 @@ public class ScmRepository {
 
     public static class Builder {
 
-        private boolean addDefaultBuildArguments;
-
+        private boolean addDefaultBuildArguments = true;
         private List<String> buildArguments = new ArrayList<>();
         private String id;
         private List<String> selectors = new ArrayList<>();
         private boolean skipTests = true;
-        private Collection<String> urls = new LinkedHashSet<String>();
+        private List<String> urls = new ArrayList<String>();
 
         public Builder() {
         }
 
+        public Builder addDefaultBuildArguments(boolean addDefaultBuildArguments) {
+            this.addDefaultBuildArguments = addDefaultBuildArguments;
+            return this;
+        }
+
         public ScmRepository build() {
             return new ScmRepository(id, Collections.unmodifiableList(selectors),
-                    Collections.unmodifiableCollection(urls), Collections.unmodifiableList(buildArguments), skipTests,
+                    Collections.unmodifiableList(urls), Collections.unmodifiableList(buildArguments), skipTests,
                     addDefaultBuildArguments);
         }
 
-        public Builder buildArguments(List<String> buildArgument) {
-            this.buildArguments.addAll(buildArgument);
+        public Builder buildArgument(String buildArgument) {
+            this.buildArguments.add(buildArgument);
+            return this;
+        }
+
+        public Builder buildArguments(List<String> buildArguments) {
+            this.buildArguments.addAll(buildArguments);
             return this;
         }
 
@@ -58,8 +67,13 @@ public class ScmRepository {
             return this;
         }
 
-        public Builder selectors(String selector) {
+        public Builder selector(String selector) {
             this.selectors.add(selector);
+            return this;
+        }
+
+        public Builder selectors(List<String> selectors) {
+            this.selectors.addAll(selectors);
             return this;
         }
 
@@ -68,8 +82,13 @@ public class ScmRepository {
             return this;
         }
 
-        public Builder urls(String url) {
+        public Builder url(String url) {
             this.urls.add(url);
+            return this;
+        }
+
+        public Builder urls(List<String> urls) {
+            this.urls.addAll(urls);
             return this;
         }
 
@@ -84,9 +103,9 @@ public class ScmRepository {
     private final String id;
     private final List<String> selectors;
     private final boolean skipTests;
-    private final Collection<String> urls;
+    private final List<String> urls;
 
-    private ScmRepository(String id, List<String> selectors, Collection<String> urls, List<String> buildArgs,
+    private ScmRepository(String id, List<String> selectors, List<String> urls, List<String> buildArgs,
             boolean skipTests, boolean addDefaultBuildArguments) {
         super();
         this.id = id;
@@ -95,6 +114,42 @@ public class ScmRepository {
         this.buildArguments = buildArgs;
         this.skipTests = skipTests;
         this.addDefaultBuildArguments = addDefaultBuildArguments;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ScmRepository other = (ScmRepository) obj;
+        if (addDefaultBuildArguments != other.addDefaultBuildArguments)
+            return false;
+        if (buildArguments == null) {
+            if (other.buildArguments != null)
+                return false;
+        } else if (!buildArguments.equals(other.buildArguments))
+            return false;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (selectors == null) {
+            if (other.selectors != null)
+                return false;
+        } else if (!selectors.equals(other.selectors))
+            return false;
+        if (skipTests != other.skipTests)
+            return false;
+        if (urls == null) {
+            if (other.urls != null)
+                return false;
+        } else if (!urls.equals(other.urls))
+            return false;
+        return true;
     }
 
     public List<String> getBuildArguments() {
@@ -125,8 +180,21 @@ public class ScmRepository {
      *
      * @return a {@link List} of SCM URLs to checkout the sources of the given dependency
      */
-    public Collection<String> getUrls() {
+    public List<String> getUrls() {
         return urls;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (addDefaultBuildArguments ? 1231 : 1237);
+        result = prime * result + ((buildArguments == null) ? 0 : buildArguments.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((selectors == null) ? 0 : selectors.hashCode());
+        result = prime * result + (skipTests ? 1231 : 1237);
+        result = prime * result + ((urls == null) ? 0 : urls.hashCode());
+        return result;
     }
 
     /**

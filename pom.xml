@@ -98,7 +98,7 @@
         Naming convention: version.${artifactId} whenever unique enough; otherwise version.${groupId}.${artifactId}
         Ordering: alphabetic
     -->
-    <version.com.mycila.license-maven-plugin>3.0.rc1</version.com.mycila.license-maven-plugin>
+    <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.exec-maven-plugin>1.3.2</version.exec-maven-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
     <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>

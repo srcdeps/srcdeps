@@ -16,18 +16,20 @@
  */
 package org.l2x6.srcdeps.localrepo;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.inject.Provider;
 
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.metadata.Metadata;
@@ -61,39 +63,40 @@ import org.slf4j.LoggerFactory;
 public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
 
     /**
-     * Encapsulates the loading of {@link Configuration} that has to be done lazily - i.e. at some point when
-     * {@link MavenSession} is available already.
+     * Encapsulates the loading of {@link Configuration}, may be not be instantiated before {@link MavenSession} is
+     * available.
      */
-    private static class LazyConfiguration {
-        private final Provider<MavenSession> sessionProvider;
+    private static class ConfigurationHolder {
 
-        public LazyConfiguration(Provider<MavenSession> sessionProvider) {
+        private final Configuration configuration;
+
+        private final Path configurationLocation;
+
+        public ConfigurationHolder(final MavenSession session) {
             super();
-            this.sessionProvider = sessionProvider;
-        }
-
-        private volatile Configuration configuration;
-        private final Object configurationLock = new Object();
-
-        /**
-         * Loads the {@link Configuration} lazily. If multiple threads call this method while {@link #configuration} is
-         * uninitialized, only the first one loads from the file system while others are waiting.
-         *
-         * @return a {@link Configuration}
-         */
-        public Configuration getConfiguration() {
-            synchronized (configurationLock) {
-                if (configuration == null) {
-                    File srcdepsYaml = locateSrcdepsYaml();
-                    log.debug("SrcdepsLocalRepositoryManager using {}", srcdepsYaml.getAbsolutePath());
-                    try (Reader r = new InputStreamReader(new FileInputStream(srcdepsYaml), "utf-8")) {
-                        configuration = new YamlConfigurationIo().read(r);
-                    } catch (IOException | ConfigurationException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+            MavenProject topLevelProject = session.getTopLevelProject();
+            Path basePath = topLevelProject.getBasedir().toPath();
+            Path srcdepsYamlPath = basePath.resolve(relativeMvnSrcdepsYaml);
+            if (Files.exists(srcdepsYamlPath)) {
+                this.configurationLocation = srcdepsYamlPath;
+                log.debug("SrcdepsLocalRepositoryManager using configuration {}", configurationLocation);
+            } else {
+                throw new RuntimeException(
+                        String.format("Could not locate srcdeps configuration at [%s]", srcdepsYamlPath));
             }
-            return configuration;
+
+            String encoding = session.getSystemProperties().getProperty("project.build.sourceEncoding");
+            if (encoding == null) {
+                encoding = session.getUserProperties().getProperty("project.build.sourceEncoding", "utf-8");
+            }
+
+            Charset cs = Charset.forName(encoding);
+            try (Reader r = Files.newBufferedReader(configurationLocation, cs)) {
+                this.configuration = new YamlConfigurationIo().read(r);
+            } catch (IOException | ConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+
         }
 
         /**
@@ -116,22 +119,19 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
         }
 
         /**
-         * Looks up the base directory of the current Maven request and tries to resolve {@code ".mvn/srcdeps.yaml"}
-         * against it or against its closest parent directory.
+         * @return the {@link Configuration} loaded from {@link #configurationLocation}
+         */
+        public Configuration getConfiguration() {
+            return configuration;
+        }
+
+        /**
+         * Returns {@code ".mvn/srcdeps.yaml"} resolved against the top level project the current Maven request.
          *
          * @return
          */
-        public File locateSrcdepsYaml() {
-            MavenSession mavenSession = sessionProvider.get();
-            String baseDir = mavenSession.getRequest().getBaseDirectory();
-            for (Path basePath = Paths.get(baseDir); basePath != null; basePath = basePath.getParent()) {
-                Path result = basePath.resolve(relativeMvnSrcdepsYaml);
-                if (Files.exists(result)) {
-                    return result.toFile();
-                }
-            }
-            throw new RuntimeException(
-                    String.format("Could not locate [%s] starting at path [%s]", relativeMvnSrcdepsYaml, baseDir));
+        public Path getConfigurationLocation() {
+            return configurationLocation;
         }
 
     }
@@ -139,11 +139,33 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
     private static final Logger log = LoggerFactory.getLogger(SrcdepsLocalRepositoryManager.class);
     public static final Path relativeMvnSrcdepsYaml = Paths.get(".mvn", "srcdeps.yaml");
 
-    private final BuildService buildService;
-    private final Path scrdepsDir;
-    private final LocalRepositoryManager delegate;
+    private static List<String> enhanceBuildArguments(List<String> buildArguments, Path configurationLocation,
+            String localRepo) {
+        List<String> result = new ArrayList<>();
+        for (String arg : buildArguments) {
+            if (arg.startsWith("-Dmaven.repo.local=")) {
+                /* We won't touch maven.repo.local set in the user's config */
+                log.debug("Srcdeps forwards {} to the nested build as set in {}", arg, configurationLocation);
+                return buildArguments;
+            }
+            result.add(arg);
+        }
 
-    private LazyConfiguration configuration;
+        String arg = "-Dmaven.repo.local=" + localRepo;
+        log.debug("Srcdeps forwards {} from the outer Maven build to the nested build", arg);
+        result.add(arg);
+
+        return Collections.unmodifiableList(result);
+    }
+
+    private final BuildService buildService;
+
+    private volatile ConfigurationHolder configurationHolder;
+    private final Object configurationLock = new Object();
+    private final LocalRepositoryManager delegate;
+    private final Path scrdepsDir;
+
+    private final Provider<MavenSession> sessionProvider;
 
     public SrcdepsLocalRepositoryManager(LocalRepositoryManager delegate, Provider<MavenSession> sessionProvider,
             BuildService buildService) {
@@ -151,7 +173,7 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
         this.delegate = delegate;
         this.buildService = buildService;
         this.scrdepsDir = delegate.getRepository().getBasedir().toPath().getParent().resolve("srcdeps");
-        this.configuration = new LazyConfiguration(sessionProvider);
+        this.sessionProvider = sessionProvider;
     }
 
     /**
@@ -190,10 +212,11 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
         Artifact artifact = request.getArtifact();
         String version = artifact.getVersion();
         if (!result.isAvailable() && SrcVersion.isSrcVersion(version)) {
-            Configuration config = configuration.getConfiguration();
+            ConfigurationHolder configHolder = getConfigurationHolder();
+            Configuration config = configHolder.getConfiguration();
 
             if (!config.isSkip()) {
-                ScmRepository scmRepo = configuration.findScmRepo(artifact);
+                ScmRepository scmRepo = configHolder.findScmRepo(artifact);
                 Path projectBuildDir = scrdepsDir.resolve(scmRepo.getId());
 
                 BuilderIo builderIo = config.getBuilderIo();
@@ -203,12 +226,17 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                         .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
                         .build();
 
+                List<String> buildArgs = enhanceBuildArguments(scmRepo.getBuildArguments(),
+                        configurationHolder.getConfigurationLocation(),
+                        delegate.getRepository().getBasedir().getAbsolutePath());
+
                 BuildRequest buildRequest = BuildRequest.builder() //
                         .projectRootDirectory(projectBuildDir) //
                         .scmUrls(scmRepo.getUrls()) //
                         .srcVersion(SrcVersion.parse(version)) //
-                        .buildArguments(scmRepo.getBuildArguments()) //
-                        .skipTests(scmRepo.isSkipTests()).forwardProperties(config.getForwardProperties())
+                        .buildArguments(buildArgs) //
+                        .skipTests(scmRepo.isSkipTests()) //
+                        .forwardProperties(config.getForwardProperties()) //
                         .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()).verbosity(config.getVerbosity()) //
                         .ioRedirects(ioRedirects) //
                         .build();
@@ -235,6 +263,21 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
     @Override
     public LocalMetadataResult find(RepositorySystemSession session, LocalMetadataRequest request) {
         return delegate.find(session, request);
+    }
+
+    /**
+     * Loads the {@link Configuration} lazily. If multiple threads call this method while {@link #configurationHolder}
+     * is uninitialized, only the first one loads from the file system while others are waiting.
+     *
+     * @return a {@link Configuration}
+     */
+    public ConfigurationHolder getConfigurationHolder() {
+        synchronized (configurationLock) {
+            if (configurationHolder == null) {
+                configurationHolder = new ConfigurationHolder(sessionProvider.get());
+            }
+        }
+        return configurationHolder;
     }
 
     @Override

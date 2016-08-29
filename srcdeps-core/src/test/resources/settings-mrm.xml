@@ -23,7 +23,7 @@
     <mirror>
       <id>mrm-maven-plugin</id>
       <name>Mock Repository Manager</name>
-      <url>http://127.0.0.1:42704</url>
+      <url>${mrm.repository.url}</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
@@ -36,7 +36,7 @@
       <repositories>
         <repository>
           <id>snapshots</id>
-          <url>http://127.0.0.1:42704</url>
+          <url>${mrm.repository.url}</url>
           <releases>
             <enabled>true</enabled>
             <checksumPolicy>ignore</checksumPolicy>
@@ -52,7 +52,7 @@
       <pluginRepositories>
         <pluginRepository>
           <id>snapshots</id>
-          <url>http://127.0.0.1:42704</url>
+          <url>${mrm.repository.url}</url>
           <releases>
             <enabled>true</enabled>
             <checksumPolicy>ignore</checksumPolicy>

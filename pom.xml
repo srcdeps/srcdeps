@@ -76,7 +76,7 @@
   <properties>
 
     <!-- dependencies -->
-    <version.io.takari.maven.plugins>2.7.0</version.io.takari.maven.plugins>
+    <version.io.takari.maven.plugins>2.9.0</version.io.takari.maven.plugins>
     <version.org.apache.maven>3.3.9</version.org.apache.maven>
     <!-- com.google.inject alias guice
          keep in sync with guiceVersion in maven
@@ -99,7 +99,7 @@
         Ordering: alphabetic
     -->
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
-    <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.11.9</version.io.takari.maven.plugins.takari-lifecycle-plugin>
+    <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.12.0</version.io.takari.maven.plugins.takari-lifecycle-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
     <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>
     <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>
@@ -169,6 +169,18 @@
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${version.com.google.inject}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.takari.maven.plugins</groupId>
+        <artifactId>takari-plugin-testing</artifactId>
+        <version>${version.io.takari.maven.plugins}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.takari.maven.plugins</groupId>
+        <artifactId>takari-plugin-integration-testing</artifactId>
+        <version>${version.io.takari.maven.plugins}</version>
+        <type>pom</type>
       </dependency>
 
       <dependency>
@@ -688,7 +700,7 @@ limitations under the License.</inlineHeader>
               </execution>
             </executions>
           </plugin>
-          
+
          <!-- Disabled because takari-lifecycle uses its own replacements for these plugins.
               We need to figure out if takari is attaching the sources and JavaDoc properly
               during the release.

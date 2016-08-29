@@ -85,9 +85,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>mrm-maven-plugin</artifactId>
-        <configuration>
-          <port>42704</port><!-- keep in sync with src/test/resources/settings-mrm.xml -->"
-        </configuration>
         <executions>
           <execution>
             <id>mrm-start</id>
@@ -108,11 +105,36 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-settings-mrm</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <skip>false</skip>
+              <resources>
+                <resource>
+                  <directory>src/test/resources</directory>
+                  <include>settings-mrm.xml</include>
+                  <filtering>true</filtering> <!-- to eval ${mrm.repository.url} set by mrm-maven-plugin -->
+                </resource>
+              </resources>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemProperties>
             <project.build.directory>${project.build.directory}</project.build.directory>
-            <mrm.settings.xml>${basedir}/src/test/resources/settings-mrm.xml</mrm.settings.xml>
+            <mrm.settings.xml>${project.build.directory}/settings-mrm.xml</mrm.settings.xml>
           </systemProperties>
         </configuration>
       </plugin>

@@ -30,6 +30,7 @@ import org.l2x6.srcdeps.core.Scm;
 import org.l2x6.srcdeps.core.ScmException;
 import org.l2x6.srcdeps.core.SrcVersion;
 import org.l2x6.srcdeps.core.SrcVersion.WellKnownType;
+import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,12 +49,18 @@ public class JGitScm implements Scm {
     public void checkout(BuildRequest request) throws ScmException {
 
         Path dir = request.getProjectRootDirectory();
-        if (!Files.exists(dir)) {
+        if (Files.exists(dir)) {
+            // TODO: Rather than deleting every time, we should consider fetch/reset if the dir already contains a git repo
             try {
-                Files.createDirectories(dir);
+                SrcdepsCoreUtils.deleteDirectory(dir);
             } catch (IOException e) {
-                throw new ScmException(String.format("Could not create directory [%s]", dir), e);
+                throw new ScmException(String.format("Srcdeps could not delete directory [%s]", dir), e);
             }
+        }
+        try {
+            Files.createDirectories(dir);
+        } catch (IOException e) {
+            throw new ScmException(String.format("Srcdeps could not create directory [%s]", dir), e);
         }
 
         ScmException lastException = null;

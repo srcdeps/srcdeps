@@ -28,6 +28,10 @@
   </parent>
 
   <artifactId>srcdeps-maven-local-repository</artifactId>
+  <packaging>takari-maven-component</packaging>
+
+  <name>Srcdeps Maven Local Repository</name>
+  <description>A srcdeps implementation of org.eclipse.aether.spi.localrepo.LocalRepositoryManagerFactory</description>
 
   <dependencies>
 

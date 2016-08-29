@@ -28,8 +28,10 @@
   </parent>
 
   <artifactId>srcdeps-core</artifactId>
+  <packaging>takari-jar</packaging>
 
   <name>Srcdeps Core</name>
+  <description>Encapsulates the core srcdeps functionality</description>
 
   <dependencies>
     <dependency>

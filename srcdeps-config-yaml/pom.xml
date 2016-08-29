@@ -28,6 +28,10 @@
   </parent>
 
   <artifactId>srcdeps-config-yaml</artifactId>
+  <packaging>takari-jar</packaging>
+
+  <name>Srcdeps YAML Configuration</name>
+  <description>A YAML implementation of org.l2x6.srcdeps.core.config.ConfigurationIo</description>
 
   <dependencies>
 

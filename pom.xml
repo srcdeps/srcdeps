@@ -99,7 +99,7 @@
         Ordering: alphabetic
     -->
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
-    <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.12.0</version.io.takari.maven.plugins.takari-lifecycle-plugin>
+    <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.11.12</version.io.takari.maven.plugins.takari-lifecycle-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
     <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>
     <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>

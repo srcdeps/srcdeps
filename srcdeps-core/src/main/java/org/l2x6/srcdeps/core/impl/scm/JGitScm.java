@@ -25,12 +25,12 @@ import javax.inject.Singleton;
 
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.util.FileUtils;
 import org.l2x6.srcdeps.core.BuildRequest;
 import org.l2x6.srcdeps.core.Scm;
 import org.l2x6.srcdeps.core.ScmException;
 import org.l2x6.srcdeps.core.SrcVersion;
 import org.l2x6.srcdeps.core.SrcVersion.WellKnownType;
-import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,8 @@ public class JGitScm implements Scm {
         if (Files.exists(dir)) {
             // TODO: Rather than deleting every time, we should consider fetch/reset if the dir already contains a git repo
             try {
-                SrcdepsCoreUtils.deleteDirectory(dir);
+                // Courtesy https://dev.eclipse.org/mhonarc/lists/jgit-dev/msg01957.html
+                FileUtils.delete(dir.toFile(), FileUtils.RECURSIVE | FileUtils.RETRY);
             } catch (IOException e) {
                 throw new ScmException(String.format("Srcdeps could not delete directory [%s]", dir), e);
             }

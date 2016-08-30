@@ -88,7 +88,7 @@
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
-    <version.org.eclipse.jgit>4.1.0.201509280440-r</version.org.eclipse.jgit>
+    <version.org.eclipse.jgit>4.4.1.201607150455-r</version.org.eclipse.jgit>
     <version.junit>4.12</version.junit>
     <version.org.slf4j>1.7.5</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>

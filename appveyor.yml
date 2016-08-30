@@ -20,8 +20,10 @@ environment:
 install:
   - cmd: SET PATH=C:\Users\appveyor\.m2\wrapper\dists\apache-maven-3.3.3-bin\3opbjp6rgl6qp7k2a6tljcpvgp\apache-maven-3.3.3\bin;%JAVA_HOME%\bin;%PATH%
 build_script:
-  - .\mvnw.cmd clean install -B -DskipTests
-test_script:
   - .\mvnw.cmd clean install -B -Prun-its
+on_failure:
+  - echo "failed"
+  - type srcdeps-maven-local-repository\target\test-projects\SrcdepsLocalRepositoryManagerTest_mvnGitBranch[3.3.1]_mvnGitBranch\log.txt
+  - type srcdeps-maven-local-repository\target\test-projects\SrcdepsLocalRepositoryManagerTest_mvnGitRevision[3.3.1]_mvnGitRevision\log.txt
 cache:
   - C:\Users\appveyor\.m2\wrapper

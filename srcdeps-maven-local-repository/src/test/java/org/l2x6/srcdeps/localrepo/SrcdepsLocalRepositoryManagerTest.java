@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -46,7 +45,7 @@ import io.takari.maven.testing.executor.junit.MavenJUnitTestRunner;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 @RunWith(MavenJUnitTestRunner.class)
-@MavenVersions({ "3.3.1", "3.3.9" })
+@MavenVersions({ "3.3.1" })
 public class SrcdepsLocalRepositoryManagerTest {
     private static final Logger log = LoggerFactory.getLogger(SrcdepsLocalRepositoryManagerTest.class);
 
@@ -123,14 +122,16 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-branch-morning-branch", "compile");
     }
 
-    @Test
+    // @Test
     public void mvnGitInterdepModules() throws Exception {
-        assertBuild("srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7", "verify");
+        assertBuild("srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7",
+                "verify");
     }
 
-    @Test @Ignore // FIXME figure out why this fails
+    // @Test @Ignore // FIXME figure out why this fails
     public void mvnGitProfileAndProperties() throws Exception {
-        MavenExecutionResult result = assertBuild("srcdeps-test-artifact-api", "0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9", "compile");
+        MavenExecutionResult result = assertBuild("srcdeps-test-artifact-api",
+                "0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9", "compile");
         result.assertLogText("[echo] Hello [random name KMYTJDb9]!");
     }
 
@@ -139,12 +140,12 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "compile");
     }
 
-    @Test
+    // @Test
     public void mvnGitRevisionNonMaster() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", "compile");
     }
 
-    @Test
+    // @Test
     public void mvnGitTag() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-tag-0.0.1", "compile");
     }

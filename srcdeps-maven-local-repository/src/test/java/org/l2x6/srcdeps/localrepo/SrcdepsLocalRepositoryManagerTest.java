@@ -73,6 +73,9 @@ public class SrcdepsLocalRepositoryManagerTest {
         @Override
         protected void starting(Description description) {
 
+            /* MavenJUnitTestRunner appends the Maven version in square brackes to the method name
+             * as seen here in the test class. We want to remove the [version] suffix here, because the test projects
+             * in src/test/projects are named like that */
             final String rawMethodName = description.getMethodName();
             final int bracePos = rawMethodName.indexOf('[');
             SrcdepsLocalRepositoryManagerTest.this.currentTestName = bracePos >= 0

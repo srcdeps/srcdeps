@@ -26,8 +26,8 @@
   <version>0.0.12-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Maven Source Dependencies Plugin Parent</name>
-  <description>A Maven plugin that can compile and install current project's dependencies from their sources</description>
+  <name>Srcdeps Parent</name>
+  <description>A set of tools for building dependencies from their sources during the build</description>
   <url>https://github.com/l2x6/srcdeps-maven-plugin</url>
   <inceptionYear>2015</inceptionYear>
   <licenses>
@@ -76,7 +76,7 @@
   <properties>
 
     <!-- dependencies -->
-
+    <version.io.takari.maven.plugins>2.9.0</version.io.takari.maven.plugins>
     <version.org.apache.maven>3.3.9</version.org.apache.maven>
     <!-- com.google.inject alias guice
          keep in sync with guiceVersion in maven
@@ -88,7 +88,7 @@
     <!-- keep in sync with sisuInjectVersion in maven
          around https://github.com/apache/maven/blob/master/pom.xml#L61 -->
     <version.org.eclipse.sisu>0.3.2</version.org.eclipse.sisu>
-    <version.org.eclipse.jgit>4.1.0.201509280440-r</version.org.eclipse.jgit>
+    <version.org.eclipse.jgit>4.4.1.201607150455-r</version.org.eclipse.jgit>
     <version.junit>4.12</version.junit>
     <version.org.slf4j>1.7.5</version.org.slf4j>
     <version.org.snakeyaml>1.17</version.org.snakeyaml>
@@ -99,22 +99,17 @@
         Ordering: alphabetic
     -->
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
-    <version.exec-maven-plugin>1.3.2</version.exec-maven-plugin>
+    <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.11.12</version.io.takari.maven.plugins.takari-lifecycle-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
     <version.maven-antrun-plugin>1.7</version.maven-antrun-plugin>
     <version.maven-checkstyle-plugin>2.15</version.maven-checkstyle-plugin>
-    <version.maven-clean-plugin>2.6</version.maven-clean-plugin>
+    <version.maven-clean-plugin>2.6.1</version.maven-clean-plugin>
     <version.maven-compiler-plugin>3.2</version.maven-compiler-plugin>
-    <version.maven-dependency-plugin>2.9</version.maven-dependency-plugin>
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
     <version.maven-enforcer-plugin>1.3.1</version.maven-enforcer-plugin>
-    <version.maven-failsafe-plugin>2.18.1</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
-    <version.maven-invoker-plugin>2.0.0</version.maven-invoker-plugin>
     <version.maven-jar-plugin>2.5</version.maven-jar-plugin>
-    <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
-    <version.maven-plugin-plugin>3.2</version.maven-plugin-plugin>
     <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
     <version.maven-site-plugin>3.4</version.maven-site-plugin>
@@ -123,7 +118,6 @@
     <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
     <version.nexus-staging-maven-plugin>1.6.5</version.nexus-staging-maven-plugin>
     <version.org.codehaus.buildnumber-maven-plugin>1.3</version.org.codehaus.buildnumber-maven-plugin>
-    <version.org.codehaus.plexus.plexus-component-metadata>1.6</version.org.codehaus.plexus.plexus-component-metadata>
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.directory-maven-plugin>0.1</version.directory-maven-plugin>
 
@@ -175,6 +169,18 @@
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${version.com.google.inject}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.takari.maven.plugins</groupId>
+        <artifactId>takari-plugin-testing</artifactId>
+        <version>${version.io.takari.maven.plugins}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.takari.maven.plugins</groupId>
+        <artifactId>takari-plugin-integration-testing</artifactId>
+        <version>${version.io.takari.maven.plugins}</version>
+        <type>pom</type>
       </dependency>
 
       <dependency>
@@ -268,6 +274,26 @@
         </plugin>
 
         <plugin>
+          <groupId>io.takari.maven.plugins</groupId>
+          <artifactId>takari-lifecycle-plugin</artifactId>
+          <version>${version.io.takari.maven.plugins.takari-lifecycle-plugin}</version>
+          <configuration>
+            <!-- compile/testCompile -->
+            <source>${maven.compiler.source}</source>
+            <compilerId>jdt</compilerId>
+            <transitiveDependencyReference>error</transitiveDependencyReference>
+            <privatePackageReference>error</privatePackageReference>
+            <proc>none</proc>
+
+            <!-- jar -->
+            <archive>
+              <manifestFile>${project.build.directory}/MANIFEST.MF</manifestFile> <!-- generated by maven-antrun-plugin -->
+            </archive>
+            <sourceJar>true</sourceJar>
+          </configuration>
+        </plugin>
+
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>${version.maven-antrun-plugin}</version>
@@ -289,30 +315,27 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${version.maven-compiler-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>${version.maven-dependency-plugin}</version>
+          <configuration>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
+            <skipMain>true</skipMain>
+          </configuration>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${version.maven-deploy-plugin}</version>
+          <configuration>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
+          </configuration>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>${version.maven-enforcer-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${version.maven-failsafe-plugin}</version>
         </plugin>
 
         <plugin>
@@ -334,12 +357,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
           <version>${version.maven-install-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-invoker-plugin</artifactId>
-          <version>${version.maven-invoker-plugin}</version>
+          <configuration>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -347,25 +368,9 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>${version.maven-jar-plugin}</version>
           <configuration>
-            <archive>
-              <manifest>
-                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-              </manifest>
-              <compress>true</compress>
-            </archive>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
           </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${version.maven-javadoc-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-plugin-plugin</artifactId>
-          <version>${version.maven-plugin-plugin}</version>
         </plugin>
 
         <plugin>
@@ -384,6 +389,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>${version.maven-resources-plugin}</version>
+          <configuration>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -396,6 +405,10 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>${version.maven-source-plugin}</version>
+          <configuration>
+            <!-- disable accidental use, must use takari-lifecycle -->
+            <skipSource>true</skipSource>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -415,12 +428,6 @@
 
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
-          <artifactId>exec-maven-plugin</artifactId>
-          <version>${version.exec-maven-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
           <artifactId>mrm-maven-plugin</artifactId>
           <version>${version.mrm-maven-plugin}</version>
         </plugin>
@@ -429,12 +436,6 @@
           <groupId>org.codehaus.gmavenplus</groupId>
           <artifactId>gmavenplus-plugin</artifactId>
           <version>${version.org.codehaus.gmavenplus.gmavenplus-plugin}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-component-metadata</artifactId>
-          <version>${version.org.codehaus.plexus.plexus-component-metadata}</version>
         </plugin>
 
         <plugin>
@@ -510,6 +511,12 @@ limitations under the License.</inlineHeader>
       </plugin>
 
       <plugin>
+        <groupId>io.takari.maven.plugins</groupId>
+        <artifactId>takari-lifecycle-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <dependencies>
@@ -547,31 +554,31 @@ limitations under the License.</inlineHeader>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <optimize>true</optimize>
-          <debug>true</debug>
-          <showDeprecation>true</showDeprecation>
-          <!-- Workaround for https://jira.codehaus.org/browse/MCOMPILER-236 present in compiler plugin 3.2 -->
-          <useIncrementalCompilation>false</useIncrementalCompilation>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-            <manifestEntries>
-              <Built-From-Git-SHA1>${buildNumber}</Built-From-Git-SHA1>
-              <Built-On>${timestamp}</Built-On>
-              <Built-From-Git-Branch>${scmBranch}</Built-From-Git-Branch>
-            </manifestEntries>
-          </archive>
-        </configuration>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- A workaround for takari-lifecycle's unability to add custion manifest entries
+                     https://github.com/takari/takari-lifecycle/issues/21 -->
+                <manifest file="${project.build.directory}/MANIFEST.MF" encoding="${project.build.sourceEncoding}">
+                  <attribute name="Built-By" value="${user.name}" />
+                  <attribute name="Implementation-Title" value="${project.name}" />
+                  <attribute name="Built-From-Git-Branch" value="${scmBranch}" />
+                  <attribute name="Implementation-Version" value="${project.version}" />
+                  <attribute name="Built-From-Git-SHA1" value="${buildNumber}" />
+                  <attribute name="Implementation-Vendor-Id" value="${project.groupId}" />
+                  <attribute name="Build-Jdk" value="${java.version}" />
+                  <attribute name="Built-On" value="${timestamp}" />
+                </manifest>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -588,7 +595,7 @@ limitations under the License.</inlineHeader>
         <configuration>
           <rules>
             <requireMavenVersion>
-              <version>[3.2.5,)</version>
+              <version>[3.3.1,)</version>
             </requireMavenVersion>
             <requireJavaVersion>
               <version>[1.7,)</version>
@@ -653,7 +660,7 @@ limitations under the License.</inlineHeader>
             </goals>
             <phase>initialize</phase>
             <configuration>
-              <property>srcdeps-parent.basedir</property>
+              <property>srcdeps-parent.basedir</property> <!-- Checkstyle will use this -->
               <project>
                 <groupId>org.l2x6.srcdeps</groupId>
                 <artifactId>srcdeps-parent</artifactId>
@@ -694,6 +701,9 @@ limitations under the License.</inlineHeader>
             </executions>
           </plugin>
 
+         <!-- Disabled because takari-lifecycle uses its own replacements for these plugins.
+              We need to figure out if takari is attaching the sources and JavaDoc properly
+              during the release.
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -720,7 +730,7 @@ limitations under the License.</inlineHeader>
                 </goals>
               </execution>
             </executions>
-          </plugin>
+          </plugin> -->
         </plugins>
       </build>
     </profile>

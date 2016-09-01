@@ -15,15 +15,14 @@
 # limitations under the License.
 #
 
-environment:
-  JAVA_HOME: C:\Program Files\Java\jdk1.7.0
-install:
-  - cmd: SET PATH=C:\Users\appveyor\.m2\wrapper\dists\apache-maven-3.3.3-bin\3opbjp6rgl6qp7k2a6tljcpvgp\apache-maven-3.3.3\bin;%JAVA_HOME%\bin;%PATH%
-build_script:
-  - .\mvnw.cmd clean install -B -Prun-its
-on_failure:
-  - echo "failed"
-  - type srcdeps-maven-local-repository\target\test-projects\SrcdepsLocalRepositoryManagerTest_mvnGitBranch[3.3.1]_mvnGitBranch\log.txt
-  - type srcdeps-maven-local-repository\target\test-projects\SrcdepsLocalRepositoryManagerTest_mvnGitRevision[3.3.1]_mvnGitRevision\log.txt
-cache:
-  - C:\Users\appveyor\.m2\wrapper
+configModelVersion: 1.0
+verbosity: info
+repositories:
+  org.l2x6.maven.srcdeps.itest:
+    selectors:
+    - org.l2x6.maven.srcdeps.itest
+    urls:
+    - git:https://github.com/l2x6/srcdeps-test-artifact.git
+    buildArguments:
+    - -Psrcdeps-test-artifact-api-hello-profile
+    - -Dhello.addressee=random name KMYTJDb9

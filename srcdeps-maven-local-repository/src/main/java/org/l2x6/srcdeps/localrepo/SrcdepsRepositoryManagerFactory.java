@@ -121,8 +121,7 @@ public class SrcdepsRepositoryManagerFactory implements LocalRepositoryManagerFa
                 winner = factory;
             }
         }
-        log.debug("SrcdepsLocalRepositoryManager will decorate {} with priority {}", winner.getPriority(),
-                winner.getClass().getName());
+        log.info("SrcdepsLocalRepositoryManager will decorate {} with priority {}", winner.getClass().getName(), winner.getPriority());
         return winner;
     }
 }

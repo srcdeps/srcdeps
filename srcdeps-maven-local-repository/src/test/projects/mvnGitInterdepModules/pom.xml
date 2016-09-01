@@ -21,42 +21,29 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.l2x6.srcdeps</groupId>
-    <artifactId>srcdeps-parent</artifactId>
-    <version>0.0.12-SNAPSHOT</version>
-  </parent>
+  <groupId>org.l2x6.maven.it</groupId>
+  <artifactId>it-srcdeps-interdep-modules</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <description>A simple IT verifying the basic use case.</description>
 
-  <artifactId>srcdeps-config-yaml</artifactId>
-  <packaging>takari-jar</packaging>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7</version.org.l2x6.maven.srcdeps.itest>
+  </properties>
 
-  <name>Srcdeps YAML Configuration</name>
-  <description>A YAML implementation of org.l2x6.srcdeps.core.config.ConfigurationIo</description>
+  <modules>
+    <module>mod-1</module>
+  </modules>
 
-  <dependencies>
-
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.l2x6.srcdeps</groupId>
-      <artifactId>srcdeps-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-    </dependency>
-
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.l2x6.maven.srcdeps.itest</groupId>
+        <artifactId>srcdeps-test-artifact-service</artifactId>
+        <version>${version.org.l2x6.maven.srcdeps.itest}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>

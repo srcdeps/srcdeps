@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright 2015-2016 Maven Source Dependencies
@@ -20,43 +19,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
-    <groupId>org.l2x6.srcdeps</groupId>
-    <artifactId>srcdeps-parent</artifactId>
-    <version>0.0.12-SNAPSHOT</version>
+    <groupId>org.l2x6.maven.it</groupId>
+    <artifactId>it-srcdeps-tag</artifactId>
+    <version>1.0-SNAPSHOT</version>
   </parent>
+  <artifactId>mod-1</artifactId>
 
-  <artifactId>srcdeps-config-yaml</artifactId>
-  <packaging>takari-jar</packaging>
-
-  <name>Srcdeps YAML Configuration</name>
-  <description>A YAML implementation of org.l2x6.srcdeps.core.config.ConfigurationIo</description>
 
   <dependencies>
-
     <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <scope>provided</scope>
+      <groupId>org.l2x6.maven.srcdeps.itest</groupId>
+      <artifactId>srcdeps-test-artifact</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.l2x6.srcdeps</groupId>
-      <artifactId>srcdeps-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-    </dependency>
-
   </dependencies>
 
 </project>

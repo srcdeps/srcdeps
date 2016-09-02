@@ -52,12 +52,8 @@ public class SrcdepsLocalRepositoryManagerTest {
     private static final Path mvnLocalRepo;
     private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
     private static final Path basedir = Paths.get(System.getProperty("basedir", new File("").getAbsolutePath()));
-    private static final Path projectsSrcDirectory;
-    private static final Path projectsTargetDirectory;
 
     static {
-        projectsSrcDirectory = basedir.resolve("src/projects");
-        projectsTargetDirectory = basedir.resolve("target/projects");
         mvnLocalRepo = basedir.resolve("target/mvn-local-repo");
     }
 

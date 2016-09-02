@@ -17,6 +17,7 @@
 package org.l2x6.srcdeps.localrepo;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,20 +52,50 @@ public class SrcdepsLocalRepositoryManagerTest {
 
     private static final Path mvnLocalRepo;
     private static final String mrmSettingsXmlPath = System.getProperty("mrm.settings.xml");
+    private static final String projectVersion = System.getProperty("project.version");
+    private static final String encoding = System.getProperty("project.build.sourceEncoding");
     private static final Path basedir = Paths.get(System.getProperty("basedir", new File("").getAbsolutePath()));
-    private static final Path projectsSrcDirectory;
-    private static final Path projectsTargetDirectory;
+    private static final String replacementStart = "<!-- @srcdeps-maven-local-repository:version@ replacement start -->";
+    private static final String replacementEnd = "<!-- @srcdeps-maven-local-repository:version@ replacement end -->";
+    private static final Path srcdepsCorePath;
 
     static {
-        projectsSrcDirectory = basedir.resolve("src/projects");
-        projectsTargetDirectory = basedir.resolve("target/projects");
-        mvnLocalRepo = basedir.resolve("target/mvn-local-repo");
+        srcdepsCorePath = basedir.resolve("../srcdeps-core").normalize();
+        mvnLocalRepo = srcdepsCorePath.resolve("target/mvn-local-repo");
     }
 
     public final MavenRuntime verifier;
 
     @Rule
-    public final TestResources resources = new TestResources();
+    public final TestResources resources = new TestResources() {
+
+        @Override
+        public File getBasedir(String project) throws IOException {
+
+            Assert.assertTrue("["+ srcdepsCorePath +"] should exist", Files.exists(srcdepsCorePath));
+
+            File result = super.getBasedir(project);
+
+            Path extensionsXmlPath = result.toPath().resolve(".mvn/extensions.xml");
+
+            String extensionsXmlContent = new String(Files.readAllBytes(extensionsXmlPath), encoding);
+
+            int start = extensionsXmlContent.indexOf(replacementStart);
+            Assert.assertTrue(replacementStart + " not found in "+ extensionsXmlPath, start >= 0);
+            int end = extensionsXmlContent.indexOf(replacementEnd) + replacementEnd.length();
+            Assert.assertTrue(replacementEnd + " not found in "+ extensionsXmlPath, end >= 0);
+
+            String newContent = extensionsXmlContent.substring(0, start) + "<version>" + projectVersion + "</version>"
+                    + extensionsXmlContent.substring(end);
+
+            Assert.assertNotEquals(newContent, extensionsXmlContent);
+
+            Files.write(extensionsXmlPath, newContent.getBytes(encoding));
+
+            return result;
+        }
+
+    };
     protected String currentTestName;
 
     @Rule
@@ -87,6 +118,8 @@ public class SrcdepsLocalRepositoryManagerTest {
     @BeforeClass
     public static void beforeClass() {
         Assert.assertTrue("[" + mrmSettingsXmlPath + "] should exist", Files.exists(Paths.get(mrmSettingsXmlPath)));
+        Assert.assertNotNull("project.build.sourceEncoding property must be set", encoding);
+        Assert.assertNotNull("project.version property must be set", projectVersion);
     }
 
     public SrcdepsLocalRepositoryManagerTest(MavenRuntimeBuilder runtimeBuilder) throws Exception {
@@ -98,10 +131,9 @@ public class SrcdepsLocalRepositoryManagerTest {
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
 
         MavenExecution execution = verifier.forProject(resources.getBasedir(currentTestName)) //
-                //.withCliOption("-X") //
-                .withCliOptions("-Dmaven.repo.local=" + mvnLocalRepo.toAbsolutePath().toString())
-                .withCliOption("-s").withCliOption(mrmSettingsXmlPath)
-        ;
+                // .withCliOption("-X") //
+                .withCliOptions("-Dmaven.repo.local=" + mvnLocalRepo.toAbsolutePath().toString()).withCliOption("-s")
+                .withCliOption(mrmSettingsXmlPath);
         MavenExecutionResult result = execution.execute("clean", "compile");
         result //
                 .assertErrorFreeLog() //
@@ -125,7 +157,7 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-branch-morning-branch", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitInterdepModules() throws Exception {
         assertBuild("srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7",
                 "verify");
@@ -143,12 +175,12 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitRevisionNonMaster() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitTag() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-tag-0.0.1", "compile");
     }

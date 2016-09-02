@@ -98,7 +98,7 @@ public class SrcdepsLocalRepositoryManagerTest {
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
 
         MavenExecution execution = verifier.forProject(resources.getBasedir(currentTestName)) //
-                //.withCliOption("-X") //
+                .withCliOption("-X") //
                 .withCliOptions("-Dmaven.repo.local=" + mvnLocalRepo.toAbsolutePath().toString())
                 .withCliOption("-s").withCliOption(mrmSettingsXmlPath)
         ;

@@ -28,7 +28,7 @@
 
   <name>Srcdeps Parent</name>
   <description>A set of tools for building dependencies from their sources during the build</description>
-  <url>https://github.com/l2x6/srcdeps-maven-plugin</url>
+  <url>https://github.com/l2x6/srcdeps</url>
   <inceptionYear>2015</inceptionYear>
   <licenses>
     <license>
@@ -53,14 +53,14 @@
   </modules>
 
   <scm>
-    <connection>scm:git:git@github.com:l2x6/srcdeps-maven-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:l2x6/srcdeps-maven-plugin.git</developerConnection>
-    <url>https://github.com/l2x6/srcdeps-maven-plugin</url>
+    <connection>scm:git:git@github.com:l2x6/srcdeps.git</connection>
+    <developerConnection>scm:git:git@github.com:l2x6/srcdeps.git</developerConnection>
+    <url>https://github.com/l2x6/srcdeps</url>
     <tag>head</tag>
   </scm>
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/l2x6/srcdeps-maven-plugin/issues</url>
+    <url>https://github.com/l2x6/srcdeps/issues</url>
   </issueManagement>
   <distributionManagement>
     <snapshotRepository>

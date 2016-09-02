@@ -57,9 +57,11 @@ public class SrcdepsLocalRepositoryManagerTest {
     private static final Path basedir = Paths.get(System.getProperty("basedir", new File("").getAbsolutePath()));
     private static final String replacementStart = "<!-- @srcdeps-maven-local-repository:version@ replacement start -->";
     private static final String replacementEnd = "<!-- @srcdeps-maven-local-repository:version@ replacement end -->";
+    private static final Path srcdepsCorePath;
 
     static {
-        mvnLocalRepo = basedir.resolve("target/mvn-local-repo");
+        srcdepsCorePath = basedir.resolve("../srcdeps-core").normalize();
+        mvnLocalRepo = srcdepsCorePath.resolve("target/mvn-local-repo");
     }
 
     public final MavenRuntime verifier;
@@ -69,6 +71,9 @@ public class SrcdepsLocalRepositoryManagerTest {
 
         @Override
         public File getBasedir(String project) throws IOException {
+
+            Assert.assertTrue("["+ srcdepsCorePath +"] should exist", Files.exists(srcdepsCorePath));
+
             File result = super.getBasedir(project);
 
             Path extensionsXmlPath = result.toPath().resolve(".mvn/extensions.xml");
@@ -165,7 +170,7 @@ public class SrcdepsLocalRepositoryManagerTest {
         result.assertLogText("[echo] Hello [random name KMYTJDb9]!");
     }
 
-    // @Test
+    @Test
     public void mvnGitRevision() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "compile");
     }

@@ -110,6 +110,7 @@
     <version.maven-gpg-plugin>1.6</version.maven-gpg-plugin>
     <version.maven-install-plugin>2.5.2</version.maven-install-plugin>
     <version.maven-jar-plugin>2.5</version.maven-jar-plugin>
+    <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
     <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
     <version.maven-site-plugin>3.4</version.maven-site-plugin>
@@ -369,6 +370,16 @@
           <version>${version.maven-jar-plugin}</version>
           <configuration>
             <!-- disable accidental use, must use takari-lifecycle -->
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
+          <configuration>
+                  <!-- disable accidental use, must use takari-lifecycle -->
             <skip>true</skip>
           </configuration>
         </plugin>

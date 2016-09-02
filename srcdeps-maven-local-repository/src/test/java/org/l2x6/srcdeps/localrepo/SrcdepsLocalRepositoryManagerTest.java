@@ -121,7 +121,7 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-branch-morning-branch", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitInterdepModules() throws Exception {
         assertBuild("srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7",
                 "verify");
@@ -139,12 +139,12 @@ public class SrcdepsLocalRepositoryManagerTest {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitRevisionNonMaster() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", "compile");
     }
 
-    // @Test
+    @Test
     public void mvnGitTag() throws Exception {
         assertBuild("srcdeps-test-artifact", "0.0.1-SRC-tag-0.0.1", "compile");
     }

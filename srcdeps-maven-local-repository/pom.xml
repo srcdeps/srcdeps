@@ -161,6 +161,8 @@
         <configuration>
           <systemProperties>
             <basedir>${project.build.directory}</basedir>
+            <project.version>${project.version}</project.version>
+            <project.build.sourceEncoding>${project.build.sourceEncoding}</project.build.sourceEncoding>
             <mrm.settings.xml>${project.build.directory}/settings-mrm.xml</mrm.settings.xml>
           </systemProperties>
         </configuration>

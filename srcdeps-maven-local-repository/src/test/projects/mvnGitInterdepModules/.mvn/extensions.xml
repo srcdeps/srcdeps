@@ -22,7 +22,7 @@
     <groupId>org.l2x6.srcdeps</groupId>
     <artifactId>srcdeps-maven-local-repository</artifactId>
     <!-- @srcdeps-maven-local-repository:version@ replacement start -->
-    <version>0.0.12-SNAPSHOT</version>
+    <version>1.0.0</version>
     <!-- @srcdeps-maven-local-repository:version@ replacement end -->
   </extension>
 </extensions>

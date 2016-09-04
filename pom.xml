@@ -117,7 +117,7 @@
     <version.sisu-maven-plugin>0.3.3</version.sisu-maven-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
     <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
-    <version.nexus-staging-maven-plugin>1.6.5</version.nexus-staging-maven-plugin>
+    <!-- <version.nexus-staging-maven-plugin>1.6.5</version.nexus-staging-maven-plugin> -->
     <version.org.codehaus.buildnumber-maven-plugin>1.3</version.org.codehaus.buildnumber-maven-plugin>
     <version.org.codehaus.mojo.xml-maven-plugin>1.0.1</version.org.codehaus.mojo.xml-maven-plugin>
     <version.directory-maven-plugin>0.1</version.directory-maven-plugin>
@@ -150,7 +150,7 @@
     <javadoc.doclint>-Xdoclint:none</javadoc.doclint>
 
     <!-- nexus-staging-maven-plugin -->
-    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+    <!-- <autoReleaseAfterClose>true</autoReleaseAfterClose> -->
 
     <!-- Repository Deployment URLs -->
     <oss.nexus.base.url>https://oss.sonatype.org</oss.nexus.base.url>
@@ -461,11 +461,12 @@
           <version>${version.directory-maven-plugin}</version>
         </plugin>
 
+        <!-- Disabled because we do not know whether this works with takari lifecycle
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>${version.nexus-staging-maven-plugin}</version>
-        </plugin>
+        </plugin> -->
 
       </plugins>
     </pluginManagement>
@@ -617,16 +618,17 @@ limitations under the License.</inlineHeader>
         </configuration>
       </plugin>
 
+      <!-- Disabled because we do not know whether this works with takari lifecycle
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
           <nexusUrl>${oss.nexus.base.url}</nexusUrl>
-          <!-- The server "id" element from settings to use authentication from -->
+          The server "id" element from settings to use authentication from
           <serverId>ossrh-repository</serverId>
         </configuration>
-      </plugin>
+      </plugin> -->
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

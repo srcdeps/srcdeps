@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.l2x6.srcdeps</groupId>
     <artifactId>srcdeps-parent</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>srcdeps-maven-local-repository</artifactId>

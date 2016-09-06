@@ -65,6 +65,12 @@ repositories:
 
 ----
 
+=== Examples a.k.a. Quickstarts
+
+There is a couple of ready-to-build self-contained examples in the
+link:srcdeps-maven-quickstarts[srcdeps-maven-quickstarts] directory. Perhaps the most prominent of them is the
+link:srcdeps-maven-quickstarts/srcdeps-mvn-git-revision-quickstart[srcdeps-mvn-git-revision-quickstart] that
+demonstrates how a project can depend on a source revision of another project.
 
 == How Srcdeps tools work
 

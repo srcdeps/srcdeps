@@ -21,14 +21,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 import org.slf4j.Logger;
@@ -55,19 +53,20 @@ public class SrcdepsLocalRepositoryManagerTest {
     private static final String projectVersion = System.getProperty("project.version");
     private static final String encoding = System.getProperty("project.build.sourceEncoding");
     private static final Path basedir = Paths.get(System.getProperty("basedir", new File("").getAbsolutePath()));
-    private static final String replacementStart = "<!-- @srcdeps-maven-local-repository:version@ replacement start -->";
-    private static final String replacementEnd = "<!-- @srcdeps-maven-local-repository:version@ replacement end -->";
+    private static final Pattern replacementPattern = Pattern.compile(Pattern.quote("<version>") + "[^<]+" + Pattern.quote("</version><!-- @srcdeps.version@ -->"));
     private static final Path srcdepsCorePath;
+    private static final Path srcdepsQuickstartsPath;
 
     static {
         srcdepsCorePath = basedir.resolve("../srcdeps-core").normalize();
+        srcdepsQuickstartsPath = basedir.resolve("../srcdeps-maven-quickstarts").normalize();
         mvnLocalRepo = srcdepsCorePath.resolve("target/mvn-local-repo");
     }
 
     public final MavenRuntime verifier;
 
     @Rule
-    public final TestResources resources = new TestResources() {
+    public final TestResources resources = new TestResources(srcdepsQuickstartsPath.toString(), "target/test-projects") {
 
         @Override
         public File getBasedir(String project) throws IOException {
@@ -80,37 +79,13 @@ public class SrcdepsLocalRepositoryManagerTest {
 
             String extensionsXmlContent = new String(Files.readAllBytes(extensionsXmlPath), encoding);
 
-            int start = extensionsXmlContent.indexOf(replacementStart);
-            Assert.assertTrue(replacementStart + " not found in "+ extensionsXmlPath, start >= 0);
-            int end = extensionsXmlContent.indexOf(replacementEnd) + replacementEnd.length();
-            Assert.assertTrue(replacementEnd + " not found in "+ extensionsXmlPath, end >= 0);
-
-            String newContent = extensionsXmlContent.substring(0, start) + "<version>" + projectVersion + "</version>"
-                    + extensionsXmlContent.substring(end);
+            String newContent = replacementPattern.matcher(extensionsXmlContent).replaceAll("<version>" + projectVersion + "</version>");
 
             Assert.assertNotEquals(newContent, extensionsXmlContent);
 
             Files.write(extensionsXmlPath, newContent.getBytes(encoding));
 
             return result;
-        }
-
-    };
-    protected String currentTestName;
-
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-
-        @Override
-        protected void starting(Description description) {
-
-            /* MavenJUnitTestRunner appends the Maven version in square brackes to the method name
-             * as seen here in the test class. We want to remove the [version] suffix here, because the test projects
-             * in src/test/projects are named like that */
-            final String rawMethodName = description.getMethodName();
-            final int bracePos = rawMethodName.indexOf('[');
-            SrcdepsLocalRepositoryManagerTest.this.currentTestName = bracePos >= 0
-                    ? rawMethodName.substring(0, bracePos) : rawMethodName;
         }
 
     };
@@ -126,22 +101,29 @@ public class SrcdepsLocalRepositoryManagerTest {
         this.verifier = runtimeBuilder.withExtension(new File("target/classes").getCanonicalFile()).build();
     }
 
-    public MavenExecutionResult assertBuild(String artifactId, String srcVersion, String goal) throws Exception {
-        final String artifactDir = "org/l2x6/maven/srcdeps/itest/" + artifactId;
-        SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
+    public MavenExecutionResult assertBuild(String project, String srcArtifactId, String srcVersion, String... goals) throws Exception {
 
-        MavenExecution execution = verifier.forProject(resources.getBasedir(currentTestName)) //
+        log.info("Building test project {}", project);
+
+        String srcGroupDir = "org/l2x6/maven/srcdeps/itest";
+        SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(srcGroupDir));
+        final String testArtifactDir = srcGroupDir  + "/" + srcArtifactId;
+
+        final String quickstartRepoDir = "org/l2x6/srcdeps/quickstarts/" + project;
+        SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(quickstartRepoDir));
+
+        MavenExecution execution = verifier.forProject(resources.getBasedir(project)) //
                 // .withCliOption("-X") //
                 .withCliOptions("-Dmaven.repo.local=" + mvnLocalRepo.toAbsolutePath().toString()).withCliOption("-s")
                 .withCliOption(mrmSettingsXmlPath);
-        MavenExecutionResult result = execution.execute("clean", "compile");
+        MavenExecutionResult result = execution.execute(goals);
         result //
                 .assertErrorFreeLog() //
                 .assertLogText(
                         "SrcdepsLocalRepositoryManager will decorate org.eclipse.aether.internal.impl.EnhancedLocalRepositoryManagerFactory with priority 10.0") //
         ;
 
-        final String artifactPrefix = artifactDir + "/" + srcVersion + "/" + artifactId + "-" + srcVersion;
+        final String artifactPrefix = testArtifactDir + "/" + srcVersion + "/" + srcArtifactId + "-" + srcVersion;
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
         assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
 
@@ -154,35 +136,55 @@ public class SrcdepsLocalRepositoryManagerTest {
 
     @Test
     public void mvnGitBranch() throws Exception {
-        assertBuild("srcdeps-test-artifact", "0.0.1-SRC-branch-morning-branch", "compile");
+        String project = "srcdeps-mvn-git-branch-quickstart";
+        assertBuild(project, "srcdeps-test-artifact", "0.0.1-SRC-branch-morning-branch", "clean", "install");
+
+        final String quickstartRepoDir = "org/l2x6/srcdeps/quickstarts/" + project + "/" + project + "-jar";
+        String dependentVersion = "1.0-SNAPSHOT";
+        final String artifactPrefix = quickstartRepoDir + "/" + dependentVersion + "/" + project + "-jar-" + dependentVersion;
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
     }
 
     @Test
     public void mvnGitInterdepModules() throws Exception {
-        assertBuild("srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7",
-                "verify");
+        assertBuild("srcdeps-mvn-git-interdep-modules-quickstart", "srcdeps-test-artifact-service", "0.0.1-SRC-revision-56576301d21c53439bcb5c48502c723282633cc7",
+                "clean", "verify");
     }
 
     // @Test @Ignore // FIXME figure out why this fails
     public void mvnGitProfileAndProperties() throws Exception {
-        MavenExecutionResult result = assertBuild("srcdeps-test-artifact-api",
-                "0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9", "compile");
+        MavenExecutionResult result = assertBuild("srcdeps-mvn-git-profile-and-properties-quickstart", "srcdeps-test-artifact-api",
+                "0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9", "clean", "compile");
         result.assertLogText("[echo] Hello [random name KMYTJDb9]!");
     }
 
     @Test
     public void mvnGitRevision() throws Exception {
-        assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "compile");
+        String project = "srcdeps-mvn-git-revision-quickstart";
+        assertBuild(project, "srcdeps-test-artifact", "0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b", "clean", "install");
+
+        final String quickstartRepoDir = "org/l2x6/srcdeps/quickstarts/" + project + "/" + project + "-jar";
+        String dependentVersion = "1.0-SNAPSHOT";
+        final String artifactPrefix = quickstartRepoDir + "/" + dependentVersion + "/" + project + "-jar-" + dependentVersion;
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
     }
 
     @Test
     public void mvnGitRevisionNonMaster() throws Exception {
-        assertBuild("srcdeps-test-artifact", "0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", "compile");
+        assertBuild("srcdeps-mvn-git-revision-non-master-quickstart", "srcdeps-test-artifact", "0.0.1-SRC-revision-dbad2cdc30b5bb3ff62fc89f57987689a5f3c220", "clean", "compile");
     }
 
     @Test
     public void mvnGitTag() throws Exception {
-        assertBuild("srcdeps-test-artifact", "0.0.1-SRC-tag-0.0.1", "compile");
+        String project = "srcdeps-mvn-git-tag-quickstart";
+        assertBuild(project, "srcdeps-test-artifact", "0.0.1-SRC-tag-0.0.1", "clean", "install");
+        final String quickstartRepoDir = "org/l2x6/srcdeps/quickstarts/" + project + "/" + project + "-jar";
+        String dependentVersion = "1.0-SNAPSHOT";
+        final String artifactPrefix = quickstartRepoDir + "/" + dependentVersion + "/" + project + "-jar-" + dependentVersion;
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".jar"));
+        assertExists(mvnLocalRepo.resolve(artifactPrefix + ".pom"));
     }
 
 }

@@ -15,10 +15,37 @@
 # limitations under the License.
 #
 
+# `.mvn/srcdeps.yaml` - the srcdeps configuration file
+
+# Note that this is a minimal srcdeps.yaml file that constains only options relevant for this quickstart.
+# For full reference, see `srcdeps.yaml.adoc` in the top level folder of srcdeps source tree.
+
+# `configModelVersion` exists just in case we'll have to change the schema of srcdeps.yaml in the future.
+#
+# Required, no default, only 1.0 supported at the moment
 configModelVersion: 1.0
+
+# `repositories` - a map of SCM repositories.
+#
+# Required, no default
 repositories:
+
+  # the `id` of the source repository, typically the `groupId` of its artifacts,
+  # or any other string unique at this level of the yaml file.
   org.l2x6.maven.srcdeps.itest:
+
+    # `selectors` - a way how to map dependency artifacts to source repositories.
+    # At the moment, the association is given by the exact string match between the `groupId` of the dependency
+    # artifact and one of the selectors listed here.
+    #
+    # At least one selector is required
     selectors:
-    - org.l2x6.maven.srcdeps.itest
+    - org.l2x6.maven.srcdeps.itest # This SCM repository entry will be used for building artifacts
+                                   # with groupId org.l2x6.maven.srcdeps.itest
+
+    # `urls` - a list of URLs to checkout the sources of the given dependency. If you list multiple SCM
+    # repos here then only the first successful checkout will count.
+    #
+    # At least one URL is required
     urls:
     - git:https://github.com/l2x6/srcdeps-test-artifact.git

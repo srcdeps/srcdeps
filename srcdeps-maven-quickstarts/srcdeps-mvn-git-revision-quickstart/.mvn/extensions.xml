@@ -17,6 +17,11 @@
     limitations under the License.
 
 -->
+
+<!--
+  Since version 1.0.0, srcdeps is not a Maven plugin but a Maven Core Extension that needs to be declared here
+  in .mvn/extensions.xml. Note that Core Extensions exist only since Maven 3.3.1.
+-->
 <extensions>
   <extension>
     <groupId>org.l2x6.srcdeps</groupId>

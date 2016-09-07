@@ -29,8 +29,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version.org.l2x6.maven.srcdeps.itest>
-    <version.junit>4.12</version.junit>
   </properties>
 
   <modules>
@@ -41,15 +39,17 @@
     <dependencies>
 
       <dependency>
+        <!-- This groupId is mapped to git:https://github.com/l2x6/srcdeps-test-artifact.git repository in .mvn/srcdeps.yaml -->
         <groupId>org.l2x6.maven.srcdeps.itest</groupId>
         <artifactId>srcdeps-test-artifact</artifactId>
-        <version>${version.org.l2x6.maven.srcdeps.itest}</version>
+        <!-- 66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b is a revision available in the git repository defined in .mvn/srcdeps.yaml -->
+        <version>0.0.1-SRC-revision-66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b</version>
       </dependency>
 
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
+        <version>4.12</version>
       </dependency>
 
     </dependencies>

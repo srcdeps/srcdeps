@@ -3,9 +3,11 @@
 [source,yaml]
 ----
 
+# `.mvn/srcdeps.yaml` - the srcdeps configuration file.
+
 # `configModelVersion` exists just in case we'll have to change the schema of srcdeps.yaml in the future.
 #
-# Required, no default, only 1.0 supported ATM
+# Required, no default, only 1.0 supported at the moment
 configModelVersion: 1.0
 
 # `forwardProperties` - used rarely, mostly for debugging.
@@ -61,22 +63,23 @@ sourcesDirectory: ~/.m2/srcdeps
 verbosity: warn
 
 
-# `repositories` A map of SCM repositories.
+# `repositories` - a map of SCM repositories.
 #
 # Required, no default
 repositories:
 
-  # `id` of the repository, only `[a-zA-Z0-9_]` characters allowed.
-  hawkularCommons:
+  # the `id` of the source repository, typically the `groupId` of its artifacts,
+  # or any other string unique at this level of the yaml file.
+  org.l2x6.maven.srcdeps.itest:
 
     # `selectors` - a way how to map dependency artifacts to source repositories.
-    # ATM, the association is given by the exact string match between the `groupId` of the dependency
+    # At the moment, the association is given by the exact string match between the `groupId` of the dependency
     # artifact and one of the selectors listed here.
     #
     # At least one selector is required
     selectors:
-    - org.hawkular.commons # This SCM repository entry will be used for building artifacts
-                           # with groupId org.hawkular.commons
+    - org.l2x6.maven.srcdeps.itest # This SCM repository entry will be used for building artifacts
+                                   # with groupId org.l2x6.maven.srcdeps.itest
 
     # `urls` - a list of URLs to checkout the sources of the given dependency. If you list multiple SCM
     # repos here then only the first successful checkout will count.
@@ -91,8 +94,7 @@ repositories:
     # Optional
     buildArguments:
     - -Dcheckstyle.skip=true
-    - -Dlicense.skip=true
-    - -Drevapi.skip=true
+    - -Dlicense.skip=true # for skipping the tests, see `skipTests` below, that is BTW `true` by default
 
     # `addDefaultBuildArguments` - if true, the build tool's default arguments will be used when building
     # a dependency. Otherwise, no default build arguments will be used. The default build arguments are

@@ -152,11 +152,10 @@ public class SrcdepsLocalRepositoryManagerTest {
                 "clean", "verify");
     }
 
-    // @Test @Ignore // FIXME figure out why this fails
+    @Test
     public void mvnGitProfileAndProperties() throws Exception {
         MavenExecutionResult result = assertBuild("srcdeps-mvn-git-profile-and-properties-quickstart", "srcdeps-test-artifact-api",
-                "0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9", "clean", "compile");
-        result.assertLogText("[echo] Hello [random name KMYTJDb9]!");
+                "0.0.1-SRC-revision-834947e286f1f59bd6c5c3ca3823f4656bc9345b", "clean", "test");
     }
 
     @Test

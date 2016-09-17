@@ -14,16 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.codehaus.plexus.util.FileUtils
+package org.l2x6.srcdeps.quickstarts.mvn.git.prop.profile;
 
-File testPom = new File(basedir, "../../../target/dependency-sources/org.l2x6.maven.srcdeps.itest/pom.xml")
-assert testPom.isFile()
+public class GreetingConsumer {
 
-File testJar = new File(basedir, "../../../target/local-repo/org/l2x6/maven/srcdeps/itest/srcdeps-test-artifact-api/0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9/srcdeps-test-artifact-api-0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9.jar")
-assert testJar.isFile()
+    public String retrieveGreeting() {
+        return new org.l2x6.maven.srcdeps.itest.api.generated.GeneratedGreeter().getGreeting();
+    }
 
-File logFile = new File(basedir, "build.log")
-assert logFile.isFile()
-String logContent = FileUtils.fileRead(logFile, "UTF-8");
-
-assert logContent =~ /\[echo\] Hello \[random name KMYTJDb9\]!/
+}

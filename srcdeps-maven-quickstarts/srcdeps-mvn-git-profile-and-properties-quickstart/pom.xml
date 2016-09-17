@@ -29,7 +29,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-revision-c60e73b94feac56501784be72e0081a37c8c01e9</version.org.l2x6.maven.srcdeps.itest>
+    <version.org.l2x6.maven.srcdeps.itest>0.0.1-SRC-revision-834947e286f1f59bd6c5c3ca3823f4656bc9345b</version.org.l2x6.maven.srcdeps.itest>
   </properties>
 
   <modules>
@@ -43,6 +43,13 @@
         <artifactId>srcdeps-test-artifact-api</artifactId>
         <version>${version.org.l2x6.maven.srcdeps.itest}</version>
       </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 

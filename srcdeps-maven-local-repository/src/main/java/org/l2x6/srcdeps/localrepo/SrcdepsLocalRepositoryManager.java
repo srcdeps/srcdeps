@@ -238,7 +238,8 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                         .buildArguments(buildArgs) //
                         .skipTests(scmRepo.isSkipTests()) //
                         .forwardProperties(config.getForwardProperties()) //
-                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()).verbosity(config.getVerbosity()) //
+                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
+                        .verbosity(config.getVerbosity()) //
                         .ioRedirects(ioRedirects) //
                         .build();
                 try {

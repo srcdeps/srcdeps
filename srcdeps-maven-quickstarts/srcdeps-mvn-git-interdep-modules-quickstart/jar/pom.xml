@@ -28,10 +28,7 @@
 
 
   <dependencies>
-    <dependency> <!-- It is probably a srcdeps bug that we need to declare this api dependency explicitly -->
-      <groupId>org.l2x6.maven.srcdeps.itest</groupId>
-      <artifactId>srcdeps-test-artifact-api</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.l2x6.maven.srcdeps.itest</groupId>
       <artifactId>srcdeps-test-artifact-service</artifactId>

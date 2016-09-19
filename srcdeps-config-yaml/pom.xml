@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.l2x6.srcdeps</groupId>
     <artifactId>srcdeps-parent</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
   </parent>
 
   <artifactId>srcdeps-config-yaml</artifactId>

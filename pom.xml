@@ -17,7 +17,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.l2x6.srcdeps</groupId>
@@ -97,6 +98,7 @@
         Naming convention: version.${artifactId} whenever unique enough; otherwise version.${groupId}.${artifactId}
         Ordering: alphabetic
     -->
+    <version.com.google.code.maven-replacer-plugin>1.5.3</version.com.google.code.maven-replacer-plugin>
     <version.com.mycila.license-maven-plugin>3.0</version.com.mycila.license-maven-plugin>
     <version.io.takari.maven.plugins.takari-lifecycle-plugin>1.11.12</version.io.takari.maven.plugins.takari-lifecycle-plugin>
     <version.mrm-maven-plugin>1.0.0</version.mrm-maven-plugin>
@@ -112,6 +114,7 @@
     <version.maven-javadoc-plugin>2.10.3</version.maven-javadoc-plugin>
     <version.maven-release-plugin>2.5.2</version.maven-release-plugin>
     <version.maven-resources-plugin>2.7</version.maven-resources-plugin>
+    <version.maven-scm-plugin>1.9.4</version.maven-scm-plugin>
     <version.maven-site-plugin>3.4</version.maven-site-plugin>
     <version.sisu-maven-plugin>0.3.3</version.sisu-maven-plugin>
     <version.maven-source-plugin>2.4</version.maven-source-plugin>
@@ -268,6 +271,12 @@
         <!-- Ordering: alphabetic by groupId and artifactId -->
 
         <plugin>
+          <groupId>com.google.code.maven-replacer-plugin</groupId>
+          <artifactId>replacer</artifactId>
+          <version>${version.com.google.code.maven-replacer-plugin}</version>
+        </plugin>
+
+        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${version.com.mycila.license-maven-plugin}</version>
@@ -389,9 +398,10 @@
           <version>${version.maven-release-plugin}</version>
           <configuration>
             <tagNameFormat>@{project.version}</tagNameFormat>
-            <preparationGoals>package</preparationGoals>
+            <preparationGoals>clean generate-sources -Pbefore-release-commit</preparationGoals>
             <goals>deploy</goals>
             <releaseProfiles>release</releaseProfiles>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
           </configuration>
         </plugin>
 
@@ -403,6 +413,12 @@
             <!-- disable accidental use, must use takari-lifecycle -->
             <skip>true</skip>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-plugin</artifactId>
+          <version>${version.maven-scm-plugin}</version>
         </plugin>
 
         <plugin>
@@ -743,6 +759,72 @@ limitations under the License.</inlineHeader>
               </execution>
             </executions>
           </plugin> -->
+        </plugins>
+      </build>
+    </profile>
+
+
+    <profile>
+      <id>before-release-commit</id>
+      <build>
+        <plugins>
+
+          <plugin>
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>replace-release-version</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+                <configuration>
+                  <basedir>${basedir}</basedir>
+                  <includes>
+                    <include>README.adoc</include>
+                    <include>srcdeps-maven-quickstarts/**/.mvn/extensions.xml</include>
+                  </includes>
+                  <replacements>
+                    <replacement>
+                      <token>&lt;version&gt;[^&lt;]*&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</token>
+                      <value>&lt;version&gt;${project.version}&lt;/version&gt;&lt;!-- @srcdeps.version@ --&gt;</value>
+                    </replacement>
+                  </replacements>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-scm-plugin</artifactId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>add-changed-files-to-scm</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add</goal>
+                </goals>
+                <configuration>
+                  <basedir>${basedir}</basedir>
+                  <includes>README.adoc,srcdeps-maven-quickstarts/**/.mvn/extensions.xml</includes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>commit-changed-files-to-scm</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>checkin</goal>
+                </goals>
+                <configuration>
+                  <message>[maven-release-plugin] Prepare release ${project.version}</message>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>

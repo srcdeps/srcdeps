@@ -40,7 +40,7 @@ are built and installed while they are looked up.
   <extension>
     <groupId>org.l2x6.maven.srcdeps</groupId>
     <artifactId>srcdeps-maven-local-repository</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0</version><!-- @srcdeps.version@ -->
   </extension>
 </extensions>
 ----

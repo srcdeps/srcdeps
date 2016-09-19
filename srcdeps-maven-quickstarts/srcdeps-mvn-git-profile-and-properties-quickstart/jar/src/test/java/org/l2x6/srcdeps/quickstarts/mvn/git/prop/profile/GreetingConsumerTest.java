@@ -14,10 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.codehaus.plexus.util.FileUtils;
+package org.l2x6.srcdeps.quickstarts.mvn.git.prop.profile;
 
-File testRepo = new File(basedir, "../../../target/local-repo");
-if (testRepo.exists()) {
-    FileUtils.deleteDirectory(testRepo);
+import org.junit.Assert;
+import org.junit.Test;
+
+public class GreetingConsumerTest {
+
+    @Test
+    public void testGreeting() {
+        Assert.assertEquals("random name KMYTJDb9", new GreetingConsumer().retrieveGreeting());
+    }
 }
-testRepo.mkdirs();

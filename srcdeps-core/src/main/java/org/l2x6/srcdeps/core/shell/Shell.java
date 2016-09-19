@@ -133,8 +133,8 @@ public class Shell {
     public static CommandResult execute(ShellCommand command) throws BuildException, CommandTimeoutException {
         final String[] cmdArray = command.asCmdArray();
         String cmdArrayString = Arrays.toString(cmdArray);
-        log.info("About to execute command {}", cmdArrayString);
         final IoRedirects redirects = command.getIoRedirects();
+        log.info("About to execute command {} using redirects {}", cmdArrayString, redirects);
         ProcessBuilder builder = new ProcessBuilder(cmdArray) //
                 .directory(command.getWorkingDirectory().toFile()) //
                 .redirectInput(redirects.getStdin()) //

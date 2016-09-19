@@ -31,6 +31,13 @@
       <groupId>org.l2x6.maven.srcdeps.itest</groupId>
       <artifactId>srcdeps-test-artifact-api</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
 </project>

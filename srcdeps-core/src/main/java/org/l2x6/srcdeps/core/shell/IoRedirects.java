@@ -229,4 +229,9 @@ public class IoRedirects {
         return stderr == null;
     }
 
+    @Override
+    public String toString() {
+        return "IoRedirects [stderr=" + stderr + ", stdin=" + stdin + ", stdout=" + stdout + "]";
+    }
+
 }

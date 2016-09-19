@@ -207,6 +207,7 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
      */
     @Override
     public LocalArtifactResult find(RepositorySystemSession session, LocalArtifactRequest request) {
+        log.debug("Srcdeps looking up locally {}", request.getArtifact());
         final LocalArtifactResult result = delegate.find(session, request);
 
         Artifact artifact = request.getArtifact();
@@ -237,7 +238,8 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                         .buildArguments(buildArgs) //
                         .skipTests(scmRepo.isSkipTests()) //
                         .forwardProperties(config.getForwardProperties()) //
-                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()).verbosity(config.getVerbosity()) //
+                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
+                        .verbosity(config.getVerbosity()) //
                         .ioRedirects(ioRedirects) //
                         .build();
                 try {
@@ -250,6 +252,7 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                                 "Srcdeps build succeeded but the artifact {} is still not available in the local repository",
                                 artifact);
                     }
+                    return newResult;
                 } catch (BuildException e) {
                     log.error("Srcdeps could not build " + request, e);
                 }

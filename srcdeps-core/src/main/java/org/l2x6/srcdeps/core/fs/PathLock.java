@@ -26,7 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A lock which guarantees its holder to have an exclusive access to {@link #getPath()}.
+ * A lock which guarantees its holder to have an exclusive access to {@link #getPath()}. Do not forget to release using
+ * {@link #close()}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
@@ -37,7 +38,7 @@ public class PathLock implements Closeable {
     private final RandomAccessFile lockFile;
     private final ReentrantLock threadLevelLock;
 
-    public PathLock(Path path, RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
+    PathLock(Path path, RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
         this.path = path;
         this.lockFile = lockFile;
         this.lockFilePath = lockFilePath;

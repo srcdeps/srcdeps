@@ -103,7 +103,7 @@ public class SrcdepsCoreUtils {
      * @throws IOException if the directory could not be created or accessed
      */
     public static void ensureDirectoryExists(Path dir) throws IOException {
-        IOException toThrow = null;
+        Throwable toThrow = null;
         for (int i = 0; i < CREATE_RETRY_COUNT; i++) {
             try {
                 Files.createDirectories(dir);
@@ -111,12 +111,14 @@ public class SrcdepsCoreUtils {
                     return;
                 }
             } catch (AccessDeniedException e) {
+                toThrow = e;
                 /* Workaround for https://bugs.openjdk.java.net/browse/JDK-8029608 */
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e1) {
+                    Thread.currentThread().interrupt();
+                    toThrow = e1;
                 }
-                toThrow = e;
             } catch (IOException e) {
                 toThrow = e;
             }

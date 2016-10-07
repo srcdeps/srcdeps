@@ -17,6 +17,8 @@
 package org.l2x6.srcdeps.core.util;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +32,9 @@ import java.util.Collection;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class SrcdepsCoreUtils {
+
+    /** The number of attempts to try when creating a new directory */
+    private static final int CREATE_RETRY_COUNT = 256;
 
     private static final boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 
@@ -87,6 +92,64 @@ public class SrcdepsCoreUtils {
                     return FileVisitResult.CONTINUE;
                 }
             });
+        }
+    }
+
+    /**
+     * Makes sure that the given directory exists. Tries creating {@link #CREATE_RETRY_COUNT} times.
+     *
+     * @param dir
+     *            the directory {@link Path} to check
+     * @throws IOException if the directory could not be created or accessed
+     */
+    public static void ensureDirectoryExists(Path dir) throws IOException {
+        IOException toThrow = null;
+        for (int i = 0; i < CREATE_RETRY_COUNT; i++) {
+            try {
+                Files.createDirectories(dir);
+                if (Files.exists(dir)) {
+                    return;
+                }
+            } catch (AccessDeniedException e) {
+                /* Workaround for https://bugs.openjdk.java.net/browse/JDK-8029608 */
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e1) {
+                }
+                toThrow = e;
+            } catch (IOException e) {
+                toThrow = e;
+            }
+        }
+        if (toThrow != null) {
+            throw new IOException(String.format("Could not create directory [%s]", dir), toThrow);
+        } else {
+            throw new IOException(
+                    String.format("Could not create directory [%s] attempting [%d] times", dir, CREATE_RETRY_COUNT));
+        }
+
+    }
+
+    /**
+     * If the given directory does not exist, creates it using {@link #ensureDirectoryExists(Path)}. Otherwise
+     * recursively deletes all subpaths in the given directory.
+     *
+     * @param dir the directory to check
+     * @throws IOException if the directory could not be created, accessed or its children deleted
+     */
+    public static void ensureDirectoryExistsAndEmpty(Path dir) throws IOException {
+        if (Files.exists(dir)) {
+            try (DirectoryStream<Path> subPaths = Files.newDirectoryStream(dir)) {
+                for (Path subPath : subPaths) {
+                    if (Files.isDirectory(subPath)) {
+                        deleteDirectory(subPath);
+                    } else {
+                        Files.delete(subPath);
+                    }
+                }
+            }
+        } else {
+            ensureDirectoryExists(dir);
         }
     }
 

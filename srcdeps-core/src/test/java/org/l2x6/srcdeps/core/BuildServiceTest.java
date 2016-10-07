@@ -71,8 +71,7 @@ public class BuildServiceTest extends InjectedTest {
     @BeforeClass
     public static void beforeClass() throws IOException {
 
-        SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo);
-        Files.createDirectories(mvnLocalRepo);
+        SrcdepsCoreUtils.ensureDirectoryExistsAndEmpty(mvnLocalRepo);
 
         System.setProperty(Configuration.SRCDEPS_MVN_SETTINGS_PROP, mrmSettingsXmlPath);
 

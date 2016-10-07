@@ -51,6 +51,9 @@ import org.l2x6.srcdeps.core.config.BuilderIo;
 import org.l2x6.srcdeps.core.config.Configuration;
 import org.l2x6.srcdeps.core.config.ConfigurationException;
 import org.l2x6.srcdeps.core.config.ScmRepository;
+import org.l2x6.srcdeps.core.fs.BuildDirectoriesManager;
+import org.l2x6.srcdeps.core.fs.PathLock;
+import org.l2x6.srcdeps.core.fs.PathLocker;
 import org.l2x6.srcdeps.core.shell.IoRedirects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,16 +167,18 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
     private final Object configurationLock = new Object();
     private final LocalRepositoryManager delegate;
     private final Path scrdepsDir;
+    private final BuildDirectoriesManager buildDirectoriesManager;
 
     private final Provider<MavenSession> sessionProvider;
 
     public SrcdepsLocalRepositoryManager(LocalRepositoryManager delegate, Provider<MavenSession> sessionProvider,
-            BuildService buildService) {
+            BuildService buildService, PathLocker pathLocker) {
         super();
         this.delegate = delegate;
         this.buildService = buildService;
         this.scrdepsDir = delegate.getRepository().getBasedir().toPath().getParent().resolve("srcdeps");
         this.sessionProvider = sessionProvider;
+        this.buildDirectoriesManager = new BuildDirectoriesManager(scrdepsDir, pathLocker);
     }
 
     /**
@@ -218,31 +223,31 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
 
             if (!config.isSkip()) {
                 ScmRepository scmRepo = configHolder.findScmRepo(artifact);
-                Path projectBuildDir = scrdepsDir.resolve(scmRepo.getId());
 
-                BuilderIo builderIo = config.getBuilderIo();
-                IoRedirects ioRedirects = IoRedirects.builder() //
-                        .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
-                        .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
-                        .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
-                        .build();
+                try (PathLock projectBuildDir = buildDirectoriesManager.openBuildDirectory(scmRepo.getIdAsPath())) {
 
-                List<String> buildArgs = enhanceBuildArguments(scmRepo.getBuildArguments(),
-                        configurationHolder.getConfigurationLocation(),
-                        delegate.getRepository().getBasedir().getAbsolutePath());
+                    BuilderIo builderIo = config.getBuilderIo();
+                    IoRedirects ioRedirects = IoRedirects.builder() //
+                            .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
+                            .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
+                            .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
+                            .build();
 
-                BuildRequest buildRequest = BuildRequest.builder() //
-                        .projectRootDirectory(projectBuildDir) //
-                        .scmUrls(scmRepo.getUrls()) //
-                        .srcVersion(SrcVersion.parse(version)) //
-                        .buildArguments(buildArgs) //
-                        .skipTests(scmRepo.isSkipTests()) //
-                        .forwardProperties(config.getForwardProperties()) //
-                        .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
-                        .verbosity(config.getVerbosity()) //
-                        .ioRedirects(ioRedirects) //
-                        .build();
-                try {
+                    List<String> buildArgs = enhanceBuildArguments(scmRepo.getBuildArguments(),
+                            configurationHolder.getConfigurationLocation(),
+                            delegate.getRepository().getBasedir().getAbsolutePath());
+
+                    BuildRequest buildRequest = BuildRequest.builder() //
+                            .projectRootDirectory(projectBuildDir.getPath()) //
+                            .scmUrls(scmRepo.getUrls()) //
+                            .srcVersion(SrcVersion.parse(version)) //
+                            .buildArguments(buildArgs) //
+                            .skipTests(scmRepo.isSkipTests()) //
+                            .forwardProperties(config.getForwardProperties()) //
+                            .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
+                            .verbosity(config.getVerbosity()) //
+                            .ioRedirects(ioRedirects) //
+                            .build();
                     buildService.build(buildRequest);
 
                     /* check once again if the delegate sees the newly built artifact */
@@ -253,9 +258,10 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
                                 artifact);
                     }
                     return newResult;
-                } catch (BuildException e) {
+                } catch (BuildException | IOException e) {
                     log.error("Srcdeps could not build " + request, e);
                 }
+
             }
 
         }

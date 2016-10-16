@@ -19,6 +19,7 @@ package org.l2x6.srcdeps.core.fs;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +42,24 @@ import org.slf4j.LoggerFactory;
 public class PathLocker {
     private static final Logger log = LoggerFactory.getLogger(PathLocker.class);
 
+    /**
+     * An internal null-safe release of all resources
+     *
+     * @param lockFile
+     * @param lockFilePath
+     * @param threadLevelLock
+     */
+    private static void close(RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
+        if (lockFile != null) {
+            try {
+                lockFile.close();
+            } catch (IOException e1) {
+                log.warn(String.format("Could not close lock file [%s]", lockFilePath), e1);
+            }
+        }
+        threadLevelLock.unlock();
+    }
+
     /** The map from filesystem paths to thread level locks */
     private final ConcurrentHashMap<Path, ReentrantLock> locks = new ConcurrentHashMap<>();
 
@@ -54,8 +73,11 @@ public class PathLocker {
      * @param path
      *            the {@link Path} to lock
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
-     * @throws IOException if the given {@code path} cannot be created as a directory
-     * @throws CannotAcquireLockException if the lock cannot be acquired immediately
+     * @throws IOException
+     *             if the given {@code path} cannot be created as a directory
+     * @throws CannotAcquireLockException
+     *             if the lock cannot be acquired immediately
+     * @throws LockerDisposedException
      */
     public PathLock tryLockDirectory(Path path) throws IOException, CannotAcquireLockException {
         SrcdepsCoreUtils.ensureDirectoryExists(path);
@@ -65,11 +87,21 @@ public class PathLocker {
         final ReentrantLock oldLock = locks.putIfAbsent(lockFilePath, newLock);
         final ReentrantLock threadLevelLock = oldLock == null ? newLock : oldLock;
         if (threadLevelLock.tryLock()) {
+            log.debug("Locked on thread level {}", path);
             RandomAccessFile lockFile = null;
             try {
                 lockFile = new RandomAccessFile(lockFilePath.toFile(), "rw");
-                lockFile.getChannel().tryLock();
-                return new PathLock(path, lockFile, lockFilePath, threadLevelLock);
+                FileLock fsLock = lockFile.getChannel().tryLock();
+                log.debug("Locked on FS {} with lock {}", path, fsLock);
+                if (fsLock == null) {
+                    throw new CannotAcquireLockException(
+                            String.format("Could not acquire filesystem level lock on [%s]", lockFilePath));
+                } else {
+                    return new PathLock(path, lockFile, lockFilePath, threadLevelLock);
+                }
+            } catch (CannotAcquireLockException e) {
+                close(lockFile, lockFilePath, threadLevelLock);
+                throw e;
             } catch (OverlappingFileLockException e) {
                 /*
                  * OverlappingFileLockException may happen if another OS level process holds the channel lock - that is
@@ -88,23 +120,6 @@ public class PathLocker {
         } else {
             throw new CannotAcquireLockException(String.format("Path [%s] is locked by another thread", lockFilePath));
         }
-    }
-
-    /**
-     * An internal null-safe release of all resources
-     * @param lockFile
-     * @param lockFilePath
-     * @param threadLevelLock
-     */
-    private static void close(RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
-        if (lockFile != null) {
-            try {
-                lockFile.close();
-            } catch (IOException e1) {
-                log.warn(String.format("Could not close lock file [%s]", lockFilePath), e1);
-            }
-        }
-        threadLevelLock.unlock();
     }
 
 }

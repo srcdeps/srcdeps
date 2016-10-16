@@ -17,6 +17,9 @@
 package org.l2x6.srcdeps.core.shell;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +31,66 @@ import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */
 public class ShellCommand {
+    public static class ShellCommandBuilder {
+        private List<String> arguments = new ArrayList<>();
+        private Map<String, String> environment = new LinkedHashMap<>();
+        private String executable;
+        private IoRedirects ioRedirects = IoRedirects.inheritAll();
+        private long timeoutMs = Long.MAX_VALUE;
+        private Path workingDirectory;
+
+        public ShellCommandBuilder arguments(List<String> args) {
+            this.arguments.addAll(args);
+            return this;
+        }
+
+        public ShellCommandBuilder arguments(String... args) {
+            for (int i = 0; i < args.length; i++) {
+                this.arguments.add(args[i]);
+            }
+            return this;
+        }
+
+        public ShellCommand build() {
+            return new ShellCommand(executable, Collections.unmodifiableList(arguments), workingDirectory,
+                    Collections.unmodifiableMap(environment), ioRedirects, timeoutMs);
+        }
+
+        public ShellCommandBuilder environment(Map<String, String> buildEnvironment) {
+            this.environment.putAll(buildEnvironment);
+            return this;
+        }
+
+        public ShellCommandBuilder environmentEntry(String key, String value) {
+            this.environment.put(key, value);
+            return this;
+        }
+
+        public ShellCommandBuilder executable(String executable) {
+            this.executable = executable;
+            return this;
+        }
+
+        public ShellCommandBuilder ioRedirects(IoRedirects ioRedirects) {
+            this.ioRedirects = ioRedirects;
+            return this;
+        }
+
+        public ShellCommandBuilder timeoutMs(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+            return this;
+        }
+
+        public ShellCommandBuilder workingDirectory(Path workingDirectory) {
+            this.workingDirectory = workingDirectory;
+            return this;
+        }
+
+    }
+
+    public static ShellCommandBuilder builder() {
+        return new ShellCommandBuilder();
+    }
 
     private final List<String> arguments;
     private final Map<String, String> environment;
@@ -36,7 +99,7 @@ public class ShellCommand {
     private final long timeoutMs;
     private final Path workingDirectory;
 
-    public ShellCommand(String executable, List<String> arguments, Path workingDirectory,
+    private ShellCommand(String executable, List<String> arguments, Path workingDirectory,
             Map<String, String> environment, IoRedirects ioRedirects, long timeoutMs) {
         super();
         SrcdepsCoreUtils.assertArgNotNull(executable, "executable");

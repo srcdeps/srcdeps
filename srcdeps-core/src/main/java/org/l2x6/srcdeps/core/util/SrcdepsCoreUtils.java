@@ -16,6 +16,7 @@
  */
 package org.l2x6.srcdeps.core.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
@@ -100,7 +101,8 @@ public class SrcdepsCoreUtils {
      *
      * @param dir
      *            the directory {@link Path} to check
-     * @throws IOException if the directory could not be created or accessed
+     * @throws IOException
+     *             if the directory could not be created or accessed
      */
     public static void ensureDirectoryExists(Path dir) throws IOException {
         Throwable toThrow = null;
@@ -136,8 +138,10 @@ public class SrcdepsCoreUtils {
      * If the given directory does not exist, creates it using {@link #ensureDirectoryExists(Path)}. Otherwise
      * recursively deletes all subpaths in the given directory.
      *
-     * @param dir the directory to check
-     * @throws IOException if the directory could not be created, accessed or its children deleted
+     * @param dir
+     *            the directory to check
+     * @throws IOException
+     *             if the directory could not be created, accessed or its children deleted
      */
     public static void ensureDirectoryExistsAndEmpty(Path dir) throws IOException {
         if (Files.exists(dir)) {
@@ -152,6 +156,18 @@ public class SrcdepsCoreUtils {
             }
         } else {
             ensureDirectoryExists(dir);
+        }
+    }
+
+    /**
+     * @return the file system path to the Java binary that runs the current Java process
+     */
+    public static String getCurrentJavaExecutable() {
+        if (isWindows) {
+            return System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator
+                    + "java.exe";
+        } else {
+            return System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "java";
         }
     }
 

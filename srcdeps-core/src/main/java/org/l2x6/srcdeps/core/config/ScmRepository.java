@@ -16,11 +16,12 @@
  */
 package org.l2x6.srcdeps.core.config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.l2x6.srcdeps.core.config.Configuration.Builder;
+import java.util.StringTokenizer;
 
 /**
  * A SCM repository entry of a {@link Configuration}.
@@ -47,9 +48,8 @@ public class ScmRepository {
         }
 
         public ScmRepository build() {
-            return new ScmRepository(id, Collections.unmodifiableList(selectors),
-                    Collections.unmodifiableList(urls), Collections.unmodifiableList(buildArguments), skipTests,
-                    addDefaultBuildArguments);
+            return new ScmRepository(id, Collections.unmodifiableList(selectors), Collections.unmodifiableList(urls),
+                    Collections.unmodifiableList(buildArguments), skipTests, addDefaultBuildArguments);
         }
 
         public Builder buildArgument(String buildArgument) {
@@ -62,8 +62,15 @@ public class ScmRepository {
             return this;
         }
 
+        /**
+         * Sets the {@link #id} after checking it using {@link ScmRepository#assertValidId(String)}.
+         *
+         * @param id
+         *            the id string
+         * @return this {@link Builder}
+         */
         public Builder id(String id) {
-            this.id = id;
+            this.id = assertValidId(id);
             return this;
         }
 
@@ -92,6 +99,65 @@ public class ScmRepository {
             return this;
         }
 
+    }
+
+    /** The period character that delimits the segments of {@link #id} values */
+    public static final char ID_DELIMITER = '.';
+
+    /**
+     * Checks that the given {@code id} is a valid id. If no violation is found the given {@code id} is returned.
+     * Otherwise an {@link IllegalArgumentException} is thrown.
+     *
+     * Valid IDs are much like Java packages: they are sequences of Java identifiers concatenad by {@code '.'}
+     * character.
+     *
+     * @param id
+     *            the ID to check
+     * @return the {@code id} passed to this method
+     * @throws IllegalArgumentException
+     *             is the given {@code id} violates some of the requirements
+     */
+    public static String assertValidId(String id) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid %s.id [%s]: cannot be null", ScmRepository.class.getSimpleName(), id));
+        } else if (id.isEmpty()) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid %s.id [%s]: cannot be empty", ScmRepository.class.getSimpleName(), id));
+        } else if (id.charAt(0) == (ID_DELIMITER)) {
+            throw new IllegalArgumentException(String.format("Invalid %s.id [%s]: cannot start with '.'",
+                    ScmRepository.class.getSimpleName(), id));
+        } else if (id.charAt(id.length() - 1) == (ID_DELIMITER)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid %s.id [%s]: cannot end with '.'", ScmRepository.class.getSimpleName(), id));
+        } else {
+            int subsequentDelimiterCount = 0;
+            for (int i = 0; i < id.length(); i++) {
+                char ch = id.charAt(i);
+                if (ch == ID_DELIMITER) {
+                    subsequentDelimiterCount++;
+                    if (subsequentDelimiterCount > 1) {
+                        throw new IllegalArgumentException(String.format(
+                                "Invalid %s.id [%s]: cannot contain mutiple delimiters ('.') one after another",
+                                ScmRepository.class.getSimpleName(), id));
+                    }
+                } else if (subsequentDelimiterCount > 0 || i == 0) {
+                    /* After the delimiter or at the very beginning */
+                    if (!Character.isJavaIdentifierStart(ch)) {
+                        throw new IllegalArgumentException(String.format(
+                                "Invalid %s.id [%s]: Invalid character [%s] at position [%d]; a Java identifier start expected",
+                                ScmRepository.class.getSimpleName(), id, ch, i));
+                    } else {
+                        subsequentDelimiterCount = 0;
+                    }
+                } else if (!Character.isJavaIdentifierPart(ch)) {
+                    throw new IllegalArgumentException(String.format(
+                            "Invalid %s.id [%s]: Invalid character [%s] at position [%d]; a Java identifier part expected",
+                            ScmRepository.class.getSimpleName(), id, ch, i));
+                }
+            }
+        }
+        return id;
     }
 
     public static Builder builder() {
@@ -157,10 +223,26 @@ public class ScmRepository {
     }
 
     /**
-     * @return an identifier of this {@link ScmRepository}. Only {@code [a-zA-Z0-9_]} characters are allowed.
+     * @return an identifier of this {@link ScmRepository}. Should be a sequence of Java identifiers concatenated by
+     *         {@code '.'} character
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * @return a {@link Path} created out of {@code '.'} delimited segments of {@link #id}. If {@link #id} is
+     *         {@code "org.project.component"} then the {@link Path} returned by this method will be
+     *         {@code "org/project/component"}
+     */
+    public Path getIdAsPath() {
+        List<String> pathElements = new ArrayList<>();
+        StringTokenizer st = new StringTokenizer(id, String.valueOf(ID_DELIMITER));
+        String first = st.nextToken();
+        while (st.hasMoreTokens()) {
+            pathElements.add(st.nextToken());
+        }
+        return Paths.get(first, pathElements.toArray(new String[0]));
     }
 
     /**

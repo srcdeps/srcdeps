@@ -49,8 +49,14 @@ public abstract class ShellBuilder implements Builder {
     public void build(BuildRequest request) throws BuildException {
 
         List<String> args = mergeArguments(request);
-        ShellCommand command = new ShellCommand(executable, args, request.getProjectRootDirectory(),
-                request.getBuildEnvironment(), request.getIoRedirects(), request.getTimeoutMs());
+        ShellCommand command = ShellCommand.builder() //
+                .executable(executable) //
+                .arguments(args) //
+                .workingDirectory(request.getProjectRootDirectory()) //
+                .environment(request.getBuildEnvironment()) //
+                .ioRedirects(request.getIoRedirects()) //
+                .timeoutMs(request.getTimeoutMs()) //
+                .build();
         Shell.execute(command).assertSuccess();
     }
 
@@ -72,14 +78,14 @@ public abstract class ShellBuilder implements Builder {
                     if (key instanceof String && ((String) key).startsWith(prefix)) {
                         String value = System.getProperty((String) key);
                         if (value != null) {
-                            result.add("-D"+ propName +"="+ value);
+                            result.add("-D" + propName + "=" + value);
                         }
                     }
                 }
             } else {
                 String value = System.getProperty(propName);
                 if (value != null) {
-                    result.add("-D"+ propName +"="+ value);
+                    result.add("-D" + propName + "=" + value);
                 }
             }
         }

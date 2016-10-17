@@ -103,8 +103,13 @@ public abstract class AbstractMvnBuilder extends ShellBuilder {
     public void setVersions(BuildRequest request) throws BuildException {
         final List<String> args = Arrays.asList("versions:set", "-DnewVersion=" + request.getSrcVersion().toString(),
                 "-DgenerateBackupPoms=false");
-        ShellCommand cliRequest = new ShellCommand(executable, args, request.getProjectRootDirectory(),
-                request.getBuildEnvironment(), request.getIoRedirects(), request.getTimeoutMs());
+        ShellCommand cliRequest = ShellCommand.builder() //
+                .executable(executable).arguments(args) //
+                .workingDirectory(request.getProjectRootDirectory()) //
+                .environment(request.getBuildEnvironment()) //
+                .ioRedirects(request.getIoRedirects()) //
+                .timeoutMs(request.getTimeoutMs()) //
+                .build();
         Shell.execute(cliRequest).assertSuccess();
     }
 

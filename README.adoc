@@ -89,8 +89,8 @@ demonstrates how a project can depend on a source revision of another project.
 == Misc.
 
 * All code and contributions are under link:/LICENSE.txt[Apache License]
-* Issues and Discussions are on GitHub: https://github.com/l2x6/srcdeps-maven-plugin/issues
-* Please contribute using GitHub Pull Requests
+* Issues and Discussions: https://github.com/l2x6/srcdeps-maven-plugin/issues
+* Slides link:http://ppalaga.github.io/presentations/160909-ci-cd-with-maven-and-srcdeps/160906-srcdeps.html[Continuous Integration/Delivery with Maven and srcdeps] 2016-09-09
 
 
 === Legacy note

@@ -172,7 +172,7 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
     private final Provider<MavenSession> sessionProvider;
 
     public SrcdepsLocalRepositoryManager(LocalRepositoryManager delegate, Provider<MavenSession> sessionProvider,
-            BuildService buildService, PathLocker pathLocker) {
+            BuildService buildService, PathLocker<SrcVersion> pathLocker) {
         super();
         this.delegate = delegate;
         this.buildService = buildService;
@@ -223,41 +223,50 @@ public class SrcdepsLocalRepositoryManager implements LocalRepositoryManager {
 
             if (!config.isSkip()) {
                 ScmRepository scmRepo = configHolder.findScmRepo(artifact);
+                SrcVersion srcVersion = SrcVersion.parse(version);
+                try (PathLock projectBuildDir = buildDirectoriesManager.openBuildDirectory(scmRepo.getIdAsPath(), srcVersion)) {
 
-                try (PathLock projectBuildDir = buildDirectoriesManager.openBuildDirectory(scmRepo.getIdAsPath())) {
+                    /* query the delegate again, because things may have changed since we requested the lock */
+                    final LocalArtifactResult result2 = delegate.find(session, request);
+                    if (result2.isAvailable()) {
+                        return result2;
+                    } else {
+                        /* no change in the local repo, let's build */
+                        BuilderIo builderIo = config.getBuilderIo();
+                        IoRedirects ioRedirects = IoRedirects.builder() //
+                                .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
+                                .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
+                                .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
+                                .build();
 
-                    BuilderIo builderIo = config.getBuilderIo();
-                    IoRedirects ioRedirects = IoRedirects.builder() //
-                            .stdin(IoRedirects.parseUri(builderIo.getStdin())) //
-                            .stdout(IoRedirects.parseUri(builderIo.getStdout())) //
-                            .stderr(IoRedirects.parseUri(builderIo.getStderr())) //
-                            .build();
+                        List<String> buildArgs = enhanceBuildArguments(scmRepo.getBuildArguments(),
+                                configurationHolder.getConfigurationLocation(),
+                                delegate.getRepository().getBasedir().getAbsolutePath());
 
-                    List<String> buildArgs = enhanceBuildArguments(scmRepo.getBuildArguments(),
-                            configurationHolder.getConfigurationLocation(),
-                            delegate.getRepository().getBasedir().getAbsolutePath());
+                        BuildRequest buildRequest = BuildRequest.builder() //
+                                .projectRootDirectory(projectBuildDir.getPath()) //
+                                .scmUrls(scmRepo.getUrls()) //
+                                .srcVersion(srcVersion) //
+                                .buildArguments(buildArgs) //
+                                .skipTests(scmRepo.isSkipTests()) //
+                                .forwardProperties(config.getForwardProperties()) //
+                                .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
+                                .verbosity(config.getVerbosity()) //
+                                .ioRedirects(ioRedirects) //
+                                .build();
+                        buildService.build(buildRequest);
 
-                    BuildRequest buildRequest = BuildRequest.builder() //
-                            .projectRootDirectory(projectBuildDir.getPath()) //
-                            .scmUrls(scmRepo.getUrls()) //
-                            .srcVersion(SrcVersion.parse(version)) //
-                            .buildArguments(buildArgs) //
-                            .skipTests(scmRepo.isSkipTests()) //
-                            .forwardProperties(config.getForwardProperties()) //
-                            .addDefaultBuildArguments(scmRepo.isAddDefaultBuildArguments()) //
-                            .verbosity(config.getVerbosity()) //
-                            .ioRedirects(ioRedirects) //
-                            .build();
-                    buildService.build(buildRequest);
-
-                    /* check once again if the delegate sees the newly built artifact */
-                    final LocalArtifactResult newResult = delegate.find(session, request);
-                    if (!newResult.isAvailable()) {
-                        log.error(
-                                "Srcdeps build succeeded but the artifact {} is still not available in the local repository",
-                                artifact);
+                        /* check once again if the delegate sees the newly built artifact */
+                        final LocalArtifactResult newResult = delegate.find(session, request);
+                        if (!newResult.isAvailable()) {
+                            log.error(
+                                    "Srcdeps build succeeded but the artifact {} is still not available in the local repository",
+                                    artifact);
+                        }
+                        return newResult;
                     }
-                    return newResult;
+
+
                 } catch (BuildException | IOException e) {
                     log.error("Srcdeps could not build " + request, e);
                 }

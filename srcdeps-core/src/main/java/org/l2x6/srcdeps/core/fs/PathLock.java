@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
  */
 public class PathLock implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(PathLock.class);
+    private final RandomAccessFile lockFile;
     private final Path lockFilePath;
     private final Path path;
-    private final RandomAccessFile lockFile;
     private final ReentrantLock threadLevelLock;
 
     PathLock(Path path, RandomAccessFile lockFile, Path lockFilePath, ReentrantLock threadLevelLock) {
@@ -43,13 +43,6 @@ public class PathLock implements Closeable {
         this.lockFile = lockFile;
         this.lockFilePath = lockFilePath;
         this.threadLevelLock = threadLevelLock;
-    }
-
-    /**
-     * @return the {@link Path} locked
-     */
-    public Path getPath() {
-        return path;
     }
 
     /**
@@ -63,6 +56,13 @@ public class PathLock implements Closeable {
             log.warn(String.format("Could not close lock file [%s]", lockFilePath), e);
         }
         threadLevelLock.unlock();
+    }
+
+    /**
+     * @return the {@link Path} locked
+     */
+    public Path getPath() {
+        return path;
     }
 
 }

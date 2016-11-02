@@ -30,6 +30,7 @@ import org.eclipse.aether.repository.LocalRepositoryManager;
 import org.eclipse.aether.repository.NoLocalRepositoryManagerException;
 import org.eclipse.aether.spi.localrepo.LocalRepositoryManagerFactory;
 import org.l2x6.srcdeps.core.BuildService;
+import org.l2x6.srcdeps.core.SrcVersion;
 import org.l2x6.srcdeps.core.fs.PathLocker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class SrcdepsRepositoryManagerFactory implements LocalRepositoryManagerFa
 
     /** Passed to {@link SrcdepsLocalRepositoryManager} */
     @Inject
-    private PathLocker pathLocker;
+    private PathLocker<SrcVersion> pathLocker;
 
     /** Passed to {@link SrcdepsLocalRepositoryManager} */
     @Inject

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.l2x6.srcdeps.core.BuildException;
+import org.l2x6.srcdeps.core.SrcVersion;
 import org.l2x6.srcdeps.core.config.ScmRepository;
 import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A class responsible (i) for the directory layout under {@link #rootDirectory} and (ii) for requesting an exclusive
- * lock for a given build directory, the locking is delegated to {@link PathLocker}.
+ * lock for a given build directory. The locking is delegated to {@link PathLocker}.
  * <p>
  * The {@link #rootDirectory} is typically <code>${maven.repo.local}/../srcdeps</code>. Under that directory, each
  * project to build gets a subdirectory that corresponds to the relative {@link Path} returned by
@@ -50,10 +51,10 @@ public class BuildDirectoriesManager {
 
     private static final Logger log = LoggerFactory.getLogger(BuildDirectoriesManager.class);
 
-    private final PathLocker pathLocker;
+    private final PathLocker<SrcVersion> pathLocker;
     private final Path rootDirectory;
 
-    public BuildDirectoriesManager(Path rootDirectory, PathLocker pathLocker) {
+    public BuildDirectoriesManager(Path rootDirectory, PathLocker<SrcVersion> pathLocker) {
         super();
         this.rootDirectory = rootDirectory;
         this.pathLocker = pathLocker;
@@ -72,13 +73,14 @@ public class BuildDirectoriesManager {
      *            the given project's build home (something like {@code Paths.get("org", "project", "component")})
      *            relative to {@link #rootDirectory} under which a subdirectory will be taken or created and
      *            subsequently locked via {@link PathLocker#tryLockDirectory(Path)}
+     * @param srcVersion
      * @return a {@link PathLock} whose holder is guaranteed to have an exclusive access to {@link PathLock#getPath()}
      * @throws BuildException
      *             when no such {@code i} between {@code 0} and {@link #CONCURRENCY_THRESHOLD} could be found that a
      *             directory <code>"${rootDirectory}/${projectBuildHome}/${i}"</code> could be locked.
      * @throws IOException
      */
-    public PathLock openBuildDirectory(Path projectBuildHome) throws BuildException, IOException {
+    public PathLock openBuildDirectory(Path projectBuildHome, SrcVersion srcVersion) throws BuildException, IOException {
 
         Path scmRepositoryDir = rootDirectory.resolve(projectBuildHome);
         SrcdepsCoreUtils.ensureDirectoryExists(scmRepositoryDir);
@@ -87,7 +89,7 @@ public class BuildDirectoriesManager {
         for (int i = 0; i < CONCURRENCY_THRESHOLD; i++) {
             Path checkoutDirectoryPath = scmRepositoryDir.resolve(String.valueOf(i));
             try {
-                return pathLocker.tryLockDirectory(checkoutDirectoryPath);
+                return pathLocker.lockDirectory(checkoutDirectoryPath, srcVersion);
             } catch (CannotAcquireLockException e) {
                 /* nevermind, another i will work */
                 lastException = e;

@@ -33,6 +33,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.l2x6.srcdeps.core.SrcVersion;
 import org.l2x6.srcdeps.core.shell.Shell;
 import org.l2x6.srcdeps.core.shell.ShellCommand;
 import org.l2x6.srcdeps.core.util.SrcdepsCoreUtils;
@@ -80,6 +81,7 @@ public class PathLockerTest {
         Files.write(keepRunnigFile, "PathLockerProcess will run till this file exists".getBytes("utf-8"));
 
         final Path dirToLock = lockerDirectory.resolve(UUID.randomUUID().toString());
+        final SrcVersion srcVersion = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
         final Path lockSuccessFile = dirToLock.resolve("lock-success.txt");
 
         /* lock dirToLock from another process running on the same machine */
@@ -89,7 +91,7 @@ public class PathLockerTest {
                 + targetDirectory.resolve("test-classes").toString() + File.pathSeparator + slfApiJar
                 + File.pathSeparator + slfSimpleJar;
         final ShellCommand command = ShellCommand.builder().executable(SrcdepsCoreUtils.getCurrentJavaExecutable())
-                .arguments("-cp", classPath, PathLockerProcess.class.getName(), dirToLock.toString(),
+                .arguments("-cp", classPath, PathLockerProcess.class.getName(), dirToLock.toString(), srcVersion.toString(),
                         keepRunnigFile.toString(), lockSuccessFile.toString())
                 .workingDirectory(lockerDirectory).build();
         final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -102,7 +104,7 @@ public class PathLockerTest {
         });
 
         /* with some delay, the dirToLock eventually gets locked by PathLockerProcess */
-        final PathLocker pathLocker = new PathLocker();
+        final PathLocker<SrcVersion> pathLocker = new PathLocker<>();
         final long timeoutSeconds = 5;
         final long lockDeadline = System.currentTimeMillis() + (timeoutSeconds * 1000);
         while (Files.notExists(lockSuccessFile) && System.currentTimeMillis() <= lockDeadline) {
@@ -116,7 +118,7 @@ public class PathLockerTest {
 
         log.debug(pid + " Lock success file exists {}", lockSuccessFile);
 
-        try (PathLock lock1 = pathLocker.tryLockDirectory(dirToLock)) {
+        try (PathLock lock1 = pathLocker.lockDirectory(dirToLock, srcVersion)) {
             /* locked for the current thread */
             Assert.fail(String.format("The current thread and process should not be able to lock [%s]", dirToLock));
         } catch (CannotAcquireLockException e) {
@@ -130,8 +132,8 @@ public class PathLockerTest {
         }
 
         /* PathLockerProcess must have unlocked at this point
-         * and we must suceed in locking from here now */
-        try (PathLock lock1 = pathLocker.tryLockDirectory(dirToLock)) {
+         * and we must succeed in locking from here now */
+        try (PathLock lock1 = pathLocker.lockDirectory(dirToLock, srcVersion)) {
             Assert.assertTrue(lock1 != null);
         }
 
@@ -143,19 +145,58 @@ public class PathLockerTest {
      * @throws Exception
      */
     @Test
-    public void multipleThreadsOfCurrentJvm() throws Exception {
+    public void multipleThreadsOfCurrentJvmSameVersion() throws Exception {
 
-        final PathLocker pathLocker = new PathLocker();
+        final PathLocker<SrcVersion> pathLocker = new PathLocker<>();
 
         final Path dir1 = lockerDirectory.resolve(UUID.randomUUID().toString());
+        final SrcVersion srcVersion = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
 
-        try (PathLock lock1 = pathLocker.tryLockDirectory(dir1)) {
+        Future<PathLock> concurrLockFuture = null;
+        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion)) {
             /* locked for the current thread */
 
-            /* now try to lock from another thread which should fail with a CannotAcquireLockException */
-
+            /* now try to lock from another thread which should fail with a TimeoutException
+             * because we have locked above */
             try {
-                lockConcurrently(pathLocker, dir1).get(5, TimeUnit.SECONDS);
+                concurrLockFuture = lockConcurrently(pathLocker, dir1, srcVersion);
+                concurrLockFuture.get(1, TimeUnit.SECONDS);
+                Assert.fail("TimeoutException expected");
+            } catch (InterruptedException e) {
+                throw e;
+            } catch (ExecutionException e) {
+                throw e;
+            } catch (TimeoutException e) {
+                /* expected */
+            }
+        }
+
+        /* unlocked again - the above attempt to lock from a concurrent thread must succeed now */
+        PathLock lock2 = concurrLockFuture.get(1, TimeUnit.SECONDS);
+        Assert.assertNotNull(lock2);
+
+    }
+
+    @Test
+    public void multipleThreadsOfCurrentJvmDistinctVersion() throws Exception {
+
+        final PathLocker<SrcVersion> pathLocker = new PathLocker<>();
+
+        final Path dir1 = lockerDirectory.resolve(UUID.randomUUID().toString());
+        final SrcVersion srcVersion1 = SrcVersion.parse("1.2.3-SRC-revision-deadbeef");
+        final SrcVersion srcVersion2 = SrcVersion.parse("2.3.4-SRC-revision-coffeebabe");
+
+        Future<PathLock> concurrLockFuture = null;
+        try (PathLock lock1 = pathLocker.lockDirectory(dir1, srcVersion1)) {
+            /* locked for the current thread */
+
+            /*
+             * now try to lock for a distinct version from another thread which should fail with a
+             * CannotAcquireLockException because we have locked the path above
+             */
+            try {
+                concurrLockFuture = lockConcurrently(pathLocker, dir1, srcVersion2);
+                concurrLockFuture.get(1, TimeUnit.SECONDS);
                 Assert.fail("CannotAcquireLockException expected");
             } catch (InterruptedException e) {
                 throw e;
@@ -167,18 +208,36 @@ public class PathLockerTest {
             }
         }
 
-        /* unlocked again */
-        Assert.assertTrue(lockConcurrently(pathLocker, dir1).get(5, TimeUnit.SECONDS));
+        /* the above concurrent attempt should still fail, even if lock1 has been released in between */
+        try {
+            concurrLockFuture.get(1, TimeUnit.SECONDS);
+
+            Assert.fail("CannotAcquireLockException expected");
+        } catch (ExecutionException e) {
+            Assert.assertTrue("Should throw CannotAcquireLockException",
+                    CannotAcquireLockException.class.equals(e.getCause().getClass()));
+        }
+
+        /* but a fresh attempt must succeed */
+        try {
+            Future<PathLock> concurrLockFuture2 = lockConcurrently(pathLocker, dir1, srcVersion2);
+            Assert.assertNotNull(concurrLockFuture2.get(1, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (ExecutionException e) {
+            throw e;
+        } catch (TimeoutException e) {
+            throw e;
+        }
 
     }
 
-    private Future<Boolean> lockConcurrently(final PathLocker pathLocker, final Path path) {
+    private Future<PathLock> lockConcurrently(final PathLocker<SrcVersion> pathLocker, final Path path, final SrcVersion srcVersion) {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
-        return executor.submit(new Callable<Boolean>() {
+        return executor.submit(new Callable<PathLock>() {
             @Override
-            public Boolean call() throws Exception {
-                pathLocker.tryLockDirectory(path);
-                return true;
+            public PathLock call() throws Exception {
+                return pathLocker.lockDirectory(path, srcVersion);
             }
         });
     }

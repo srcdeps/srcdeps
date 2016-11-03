@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.l2x6.srcdeps.core.SrcVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,8 @@ public class PathLockerProcess {
 
     public static void main(String[] args) {
         try {
-            new PathLockerProcess(Paths.get(args[0]), Paths.get(args[1]), Paths.get(args[2])).run();
+            int i = 0;
+            new PathLockerProcess(Paths.get(args[i++]), SrcVersion.parse(args[i++]), Paths.get(args[i++]), Paths.get(args[i++])).run();
         } catch (Throwable e) {
             e.printStackTrace();
             log.info(pid + " PathLockerProcess exiting");
@@ -48,12 +50,14 @@ public class PathLockerProcess {
     private final Path keepRunnigFile;
     private final Path lockSuccessFile;
     private final Path lockedDirectory;
+    private final SrcVersion srcVersion;
 
-    public PathLockerProcess(Path lockedDirectory, Path keepRunnigFile, Path lockSuccessFile) {
+    public PathLockerProcess(Path lockedDirectory, SrcVersion srcVersion, Path keepRunnigFile, Path lockSuccessFile) {
         super();
         this.lockedDirectory = lockedDirectory;
         this.keepRunnigFile = keepRunnigFile;
         this.lockSuccessFile = lockSuccessFile;
+        this.srcVersion = srcVersion;
         if (Files.notExists(keepRunnigFile)) {
             throw new IllegalStateException(String
                     .format("The keepRunnigFile [%s] should exist when PathLockerProcess is created", keepRunnigFile));
@@ -68,7 +72,7 @@ public class PathLockerProcess {
 
         final PathLocker pathLocker = new PathLocker();
 
-        try (PathLock lock1 = pathLocker.tryLockDirectory(lockedDirectory)) {
+        try (PathLock lock1 = pathLocker.lockDirectory(lockedDirectory, srcVersion)) {
             /* locked for the current thread */
             log.debug(pid + " Announcing lock success in {}", lockSuccessFile);
             Files.write(lockSuccessFile, "PathLockerProcess locked this file".getBytes("utf-8"));

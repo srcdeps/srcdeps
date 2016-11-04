@@ -48,4 +48,4 @@ repositories:
     #
     # At least one URL is required
     urls:
-    - git:https://github.com/l2x6/srcdeps-test-artifact.git
+    - git:https://github.com/srcdeps/srcdeps-test-artifact.git

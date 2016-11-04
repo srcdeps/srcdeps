@@ -46,7 +46,7 @@ public class JGitScmTest {
 
         /* first clone */
         BuildRequest cloningRequest = BuildRequest.builder().srcVersion(SrcVersion.parse("0.0.1-SRC-tag-0.0.1"))
-                .projectRootDirectory(dir).scmUrl("git:https://github.com/l2x6/srcdeps-test-artifact.git").build();
+                .projectRootDirectory(dir).scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build();
         JGitScm jGitScm = new JGitScm();
 
         jGitScm.checkout(cloningRequest);
@@ -58,7 +58,7 @@ public class JGitScmTest {
         /* try if the fetch works after we have cloned already */
         BuildRequest fetchingRequest = BuildRequest.builder()
                 .srcVersion(SrcVersion.parse("0.0.1-SRC-revision-0a5ab902099b24c2b13ed1dad8c5f537458bcc89"))
-                .projectRootDirectory(dir).scmUrl("git:https://github.com/l2x6/srcdeps-test-artifact.git").build();
+                .projectRootDirectory(dir).scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build();
 
         jGitScm.fetchAndReset(fetchingRequest);
 

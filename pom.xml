@@ -27,7 +27,7 @@
 
   <name>Srcdeps Parent</name>
   <description>A set of tools for building dependencies from their sources during the build</description>
-  <url>https://github.com/l2x6/srcdeps</url>
+  <url>https://github.com/srcdeps/srcdeps</url>
   <inceptionYear>2015</inceptionYear>
   <licenses>
     <license>
@@ -52,14 +52,14 @@
   </modules>
 
   <scm>
-    <connection>scm:git:git@github.com:l2x6/srcdeps.git</connection>
-    <developerConnection>scm:git:git@github.com:l2x6/srcdeps.git</developerConnection>
-    <url>https://github.com/l2x6/srcdeps</url>
+    <connection>scm:git:git@github.com:srcdeps/srcdeps.git</connection>
+    <developerConnection>scm:git:git@github.com:srcdeps/srcdeps.git</developerConnection>
+    <url>https://github.com/srcdeps/srcdeps</url>
     <tag>head</tag>
   </scm>
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/l2x6/srcdeps/issues</url>
+    <url>https://github.com/srcdeps/srcdeps/issues</url>
   </issueManagement>
   <distributionManagement>
     <snapshotRepository>

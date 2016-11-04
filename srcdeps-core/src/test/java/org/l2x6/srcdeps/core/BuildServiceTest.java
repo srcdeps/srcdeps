@@ -92,7 +92,7 @@ public class BuildServiceTest extends InjectedTest {
         SrcdepsCoreUtils.deleteDirectory(mvnLocalRepo.resolve(artifactDir));
 
         BuildRequest request = BuildRequest.builder() //
-                .scmUrl("git:https://github.com/l2x6/srcdeps-test-artifact.git")
+                .scmUrl("git:https://github.com/srcdeps/srcdeps-test-artifact.git")
                 .srcVersion(SrcVersion.parse(srcVersion)).projectRootDirectory(projectBuildDirectory) //
                 .buildArgument("-Dmaven.repo.local=" + mvnLocalRepo.toString()) //
                 .build();

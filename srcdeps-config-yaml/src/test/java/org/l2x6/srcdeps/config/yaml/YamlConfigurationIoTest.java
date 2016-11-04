@@ -49,7 +49,7 @@ public class YamlConfigurationIoTest {
             Configuration actual = new YamlConfigurationIo().read(in);
             Configuration expected = Configuration.builder()
                     .sourcesDirectory(Paths.get("/home/me/.m2/srcdeps"))
-                    .repository(ScmRepository.builder().id("srcdepsTestArtifact").selector("org.l2x6.maven.srcdeps.itest").url("git:https://github.com/l2x6/srcdeps-test-artifact.git").build())
+                    .repository(ScmRepository.builder().id("srcdepsTestArtifact").selector("org.l2x6.maven.srcdeps.itest").url("git:https://github.com/srcdeps/srcdeps-test-artifact.git").build())
                     .build();
             Assert.assertEquals(expected, actual);
         }

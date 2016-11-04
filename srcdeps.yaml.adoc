@@ -86,7 +86,7 @@ repositories:
     #
     # At least one URL is required
     urls:
-    - git:https://github.com/hawkular/hawkular-commons.git
+    - git:https://github.com/srcdeps/srcdeps-test-artifact.git
 
     # Appended to the list of build tool specific default build arguments. To override the given
     # build tool's defaults, see addDefaultBuildArguments

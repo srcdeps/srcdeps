@@ -23,9 +23,9 @@ import org.l2x6.srcdeps.core.impl.scm.JGitScm;
  * <p>
  * {@link #supports(String)} is used to auto-detect the {@link Scm} implementation to use for the given kind of URLs.
  * The implementations decide based on a prefix of the URL - e.g. {@link JGitScm} expects the URLs to start with
- * {@code git:} as in {@code git:https://github.com/l2x6/srcdeps-test-artifact.git}. This prefix is supposed to be
+ * {@code git:} as in {@code git:https://github.com/srcdeps/srcdeps-test-artifact.git}. This prefix is supposed to be
  * removed by the {@link Scm} implementation when actually checking out. Hence the effective URL that will be used by
- * {@link JGitScm} to checkout is {@code https://github.com/l2x6/srcdeps-test-artifact.git}.
+ * {@link JGitScm} to checkout is {@code https://github.com/srcdeps/srcdeps-test-artifact.git}.
  *
  * @author <a href="https://github.com/ppalaga">Peter Palaga</a>
  */

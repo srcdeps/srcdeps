@@ -21,4 +21,4 @@ repositories:
     selectors:
     - org.l2x6.maven.srcdeps.itest
     urls:
-    - git:https://github.com/l2x6/srcdeps-test-artifact.git
+    - git:https://github.com/srcdeps/srcdeps-test-artifact.git

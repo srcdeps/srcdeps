@@ -23,4 +23,4 @@ A project containing a dependency on a source revision of another project
 
 == Feedback
 
-via link:https://github.com/l2x6/srcdeps/issues[Github Issues]
+via link:https://github.com/srcdeps/srcdeps/issues[Github Issues]

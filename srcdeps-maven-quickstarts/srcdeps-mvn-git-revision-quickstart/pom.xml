@@ -39,7 +39,7 @@
     <dependencies>
 
       <dependency>
-        <!-- This groupId is mapped to git:https://github.com/l2x6/srcdeps-test-artifact.git repository in .mvn/srcdeps.yaml -->
+        <!-- This groupId is mapped to git:https://github.com/srcdeps/srcdeps-test-artifact.git repository in .mvn/srcdeps.yaml -->
         <groupId>org.l2x6.maven.srcdeps.itest</groupId>
         <artifactId>srcdeps-test-artifact</artifactId>
         <!-- 66ea95d890531f4eaaa5aa04a9b1c69b409dcd0b is a revision available in the git repository defined in .mvn/srcdeps.yaml -->

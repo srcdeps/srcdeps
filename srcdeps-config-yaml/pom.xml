@@ -30,7 +30,7 @@
   <packaging>takari-jar</packaging>
 
   <name>Srcdeps YAML Configuration</name>
-  <description>A YAML implementation of org.l2x6.srcdeps.core.config.ConfigurationIo</description>
+  <description>A YAML implementation of org.srcdeps.core.config.ConfigurationIo</description>
 
   <dependencies>
 

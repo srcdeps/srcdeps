@@ -1,19 +1,9 @@
-= Srcdeps
+= `srcdeps`
 
-A set of tools for building dependencies from their sources during the build.
+A set of tools for building dependencies from their sources during the build of the dependent project.
 
-= What is this good for?
+Please check the individual subprojects to learn more about `srcdeps`:
 
-Srcdeps alleviates some of the pains that arise from implementing Continuous Delivery in projects that use Maven-like
-Artifacts. With srcdeps, a module can depend on a specific revision of another module. For instance, a module
-`web-banking-frontend` could depend on `account-balance-microservice` at git revision `abc123`, without requiring the `account-balance-microservice` to perform a complete Maven release.
-
-
-== Srcdeps support in build tools
-
-Srcdeps is fully supported in Maven 3.3.1+. Please refer to
-link:https://github.com/srcdeps/srcdeps-maven[Srcdeps Maven] for details for to configure etc.
-
-Although Gradle and sbt are not supported at this point, the link:https://github.com/srcdeps/srcdeps-core[Srcdeps Core]
-library has an ambition to be generic enough so that a support for other build tools can be added. Contributions are
-welcome!
+* `https://github.com/srcdeps/srcdeps-maven[srcdeps-maven]`
+* `https://github.com/srcdeps/srcdeps-gradle-plugin[srcdeps-gradle-plugin]`
+* `https://github.com/srcdeps/srcdeps-core[srcdeps-core]`
